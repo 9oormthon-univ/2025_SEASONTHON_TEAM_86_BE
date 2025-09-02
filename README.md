@@ -1,2 +1,20 @@
-# 2025_SEASONTHON_TEAM_86_BE
-[2025 kakao X goorm 시즌톤] 주민이 정하고, 셰프가 찾아오는 레스토랑. 수요응답형 레스토랑 🥕DERERE - BE
+## Git Convention
+
+- 브랜치명 규칙
+  
+  ex). feat/#1
+  
+
+- Commit 메시지 규칙
+  
+  ex). feat: 기본 엔티티 생성
+  
+
+- Issue 제목
+  
+  ex). [FEAT] 기본 엔티티 생성
+  
+
+- PR 제목
+  
+  ex). feat/#6 기본 엔티티 생성
