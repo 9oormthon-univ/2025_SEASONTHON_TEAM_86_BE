@@ -1,4 +1,4 @@
-package com.goorm.derere;
+package com.goorm.derere.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
