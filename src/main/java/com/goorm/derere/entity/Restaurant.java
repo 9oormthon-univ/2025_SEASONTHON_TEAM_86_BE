@@ -25,7 +25,7 @@ public class Restaurant {
     @Column(nullable = false, length = 20)
     private String restaurantType;
 
-    @Column(nullable = false, length = 13) // 최대 길이 13 ("000-0000-0000")
+    @Column(nullable = false, length = 13) // 최대 길이 13 ("000-0000-0000") or ("000-000-0000")"
     private String restaurantNum;
 
     @Column(nullable = false, length = 100)

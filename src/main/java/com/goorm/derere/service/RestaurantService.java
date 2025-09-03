@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class RestaurantService {
@@ -47,5 +49,11 @@ public class RestaurantService {
         if (updateRestaurantRequest.getRestaurantNum()     != null) restaurant.changeNum(updateRestaurantRequest.getRestaurantNum());
         if (updateRestaurantRequest.getRestaurantAddress() != null) restaurant.changeAddress(updateRestaurantRequest.getRestaurantAddress());
         if (updateRestaurantRequest.getRestaurantTime()    != null) restaurant.changeTime(updateRestaurantRequest.getRestaurantTime());
+    }
+
+    // 전체 조회
+    @Transactional(readOnly = true)
+    public List<Restaurant> getAllRestaurants() {
+        return restaurantRepository.findAll();
     }
 }

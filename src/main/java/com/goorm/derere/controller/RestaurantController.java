@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @Tag(name = "음식점 API", description = "음식점 CRUD 기능 및 검색 기능 입니다.")
 @RestController
@@ -21,9 +22,8 @@ import java.net.URI;
 public class RestaurantController {
 
     private final RestaurantService restaurantService;
-    private final RestaurantRepository restaurantRepository;
 
-    // 음식점 생성
+    // 생성
     // TODO: userID FK 추가 예정
     @Operation(summary = "음식점 생성 API", description = "음식점 CREATE 기능입니다.")
     @PostMapping
@@ -35,7 +35,16 @@ public class RestaurantController {
                 .body(result);
     }
 
-    // 음식점 수정
+    // 전체 조회
+    @Operation(summary = "음식점 조회 API", description = "음식점 READ 기능입니다. 전체 음식점 리스트를 확인할 수 있습니다.")
+    @GetMapping
+    public ResponseEntity<List<Restaurant>> getAllRestaurants() {
+
+        var result = restaurantService.getAllRestaurants();
+        return ResponseEntity.ok(result);
+    }
+
+    // 수정
     // TODO: userID FK 추가 예정
     @Operation(summary = "음식점 수정 API", description = "음식점 UPDATE 기능입니다. 수정하고 싶은 필드 값만 입력해도 가능합니다.")
     @PutMapping("/{restaurantId}")
@@ -45,7 +54,7 @@ public class RestaurantController {
         return ResponseEntity.noContent().build();
     }
 
-    // 음식점 삭제
+    // 삭제
     // TODO: userID FK 추가 예정
     @Operation(summary = "음식점 삭제 API", description = "음식점 DELETE 기능입니다.")
     @DeleteMapping("/{restaurantId}")
