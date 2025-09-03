@@ -1,6 +1,6 @@
 package com.goorm.derere.service;
 
-import com.goorm.derere.entity.OAuthAttributes;
+import com.goorm.derere.dto.OAuthAttributes;
 import com.goorm.derere.dto.OAuthLoginResult;
 import com.goorm.derere.dto.OAuthUserInfo;
 import com.goorm.derere.entity.User;

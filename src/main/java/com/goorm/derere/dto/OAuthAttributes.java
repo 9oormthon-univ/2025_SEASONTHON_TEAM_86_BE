@@ -1,6 +1,4 @@
-package com.goorm.derere.entity;
-
-import com.goorm.derere.dto.OAuthUserInfo;
+package com.goorm.derere.dto;
 
 import java.util.Arrays;
 import java.util.Map;
