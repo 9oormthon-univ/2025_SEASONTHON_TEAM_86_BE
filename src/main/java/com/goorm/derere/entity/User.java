@@ -31,12 +31,5 @@ public class User {
         return this;
     }
 
-    public User toEntity() {
-        return User.builder()
-                .userid(this.userid)
-                .username(this.username)
-                .email(this.email)
-                .build();
-    }
 }
 
