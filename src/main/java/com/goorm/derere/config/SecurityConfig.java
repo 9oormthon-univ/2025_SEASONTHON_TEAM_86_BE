@@ -1,9 +1,7 @@
-package com.goorm.derere;
+package com.goorm.derere.config;
 
-import com.goorm.derere.entity.User;
 import com.goorm.derere.handler.OAuthSuccessHandler;
 import com.goorm.derere.service.OAuthService;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -23,14 +21,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        기존 코드
-//        http.csrf((csrf) -> csrf.disable());
-//
-//        http.authorizeHttpRequests((authorize) ->
-//                authorize.requestMatchers("/**").permitAll() // 개발 단계에서 임시로 모든 URL 허용
-//        );
 
-        //기존 코드에 소셜로그인에 필요한 코드 추가
         http.csrf((csrf) -> csrf.disable())
         .headers(headers -> headers.frameOptions(frame -> frame.disable())) // h2-console 허용
         .authorizeHttpRequests(auth -> auth
