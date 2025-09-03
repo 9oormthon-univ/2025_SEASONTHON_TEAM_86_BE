@@ -1,6 +1,7 @@
 package com.goorm.derere.controller;
 
 import com.goorm.derere.dto.AddRestaurantRequest;
+import com.goorm.derere.dto.UpdateRestaurantRequest;
 import com.goorm.derere.entity.Restaurant;
 import com.goorm.derere.repository.RestaurantRepository;
 import com.goorm.derere.service.RestaurantService;
@@ -32,6 +33,16 @@ public class RestaurantController {
         return ResponseEntity
                 .created(URI.create("/api/restaurants/" + result.getRestaurantId()))
                 .body(result);
+    }
+
+    // 음식점 수정
+    // TODO: userID FK 추가 예정
+    @Operation(summary = "음식점 수정 API", description = "음식점 UPDATE 기능입니다. 수정하고 싶은 필드 값만 입력해도 가능합니다.")
+    @PutMapping("/{restaurantId}")
+    public ResponseEntity<Restaurant> updateRestaurant(@PathVariable Long restaurantId, @RequestParam Long userId, @RequestBody @Valid UpdateRestaurantRequest updateRestaurantRequest) {
+
+        restaurantService.updateRestaurant(restaurantId, userId, updateRestaurantRequest);
+        return ResponseEntity.noContent().build();
     }
 
     // 음식점 삭제

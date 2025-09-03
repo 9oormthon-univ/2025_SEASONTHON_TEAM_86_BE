@@ -43,6 +43,7 @@ public class Restaurant {
     @Column(nullable = false)
     private boolean restaurantOpen = false;
 
+    // 음식점 생성
     public Restaurant(String restaurantName, Long userId, String restaurantInfo, String restaurantType,
                       String restaurantNum, String restaurantAddress, String restaurantTime) {
         if (restaurantName == null || restaurantName.isBlank()) throw new IllegalArgumentException("음식점 이름이 필요합니다.");
@@ -56,4 +57,12 @@ public class Restaurant {
         this.restaurantAddress = restaurantAddress;
         this.restaurantTime = restaurantTime;
     }
+
+    // 음식점 수정
+    public void changeName(String name){ this.restaurantName = name; }
+    public void changeInfo(String info){ this.restaurantInfo = info; }
+    public void changeType(String type){ this.restaurantType = type; }
+    public void changeNum(String num){ this.restaurantNum = num; }
+    public void changeAddress(String addr){ this.restaurantAddress = addr; }
+    public void changeTime(String time){ this.restaurantTime = time; }
 }
