@@ -3,12 +3,17 @@ package com.goorm.derere.controller;
 import com.goorm.derere.dto.AddRestaurantRequest;
 import com.goorm.derere.dto.UpdateRestaurantRequest;
 import com.goorm.derere.entity.Restaurant;
+import com.goorm.derere.entity.RestaurantType;
+import com.goorm.derere.entity.User;
+import com.goorm.derere.repository.OAuthRepository;
 import com.goorm.derere.service.RestaurantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -21,9 +26,9 @@ import java.util.List;
 public class RestaurantController {
 
     private final RestaurantService restaurantService;
+    private final OAuthRepository oAuthRepository;
 
     // 생성
-    // TODO: userID FK 추가 예정
     @Operation(summary = "음식점 생성 API", description = "음식점 CREATE 기능입니다.")
     @PostMapping
     public ResponseEntity<Restaurant> addRestaurant(@RequestBody @Valid AddRestaurantRequest addRestaurantRequest) {
@@ -77,26 +82,87 @@ public class RestaurantController {
     public ResponseEntity<List<Restaurant>> getRestaurantsByName(@RequestParam String restaurantName, @RequestParam(defaultValue = "vote") String sortBy) {
 
         List<Restaurant> restaurants;
-        if (sortBy.equals("like")) { restaurants = restaurantService.findByRestaurantNameOrderByLike(restaurantName); }
-        else { restaurants = restaurantService.findByRestaurantNameOrderByVote(restaurantName);}
+        if (sortBy.equals("like")) {
+            restaurants = restaurantService.findByRestaurantNameOrderByLike(restaurantName);
+        } else {
+            restaurants = restaurantService.findByRestaurantNameOrderByVote(restaurantName);
+        }
         return ResponseEntity.ok(restaurants);
     }
 
-    // 수정
-    // TODO: userID FK 추가 예정
-    @Operation(summary = "음식점 수정 API", description = "음식점 UPDATE 기능입니다. 수정하고 싶은 필드 값만 입력해도 가능합니다.")
+    // 음식점 타입별 조회 ex)/api/restaurant/type/한식?sortBy=desc
+    @Operation(summary = "음식점 타입별 조회 API",
+            description = "음식점 타입(양식,한식,일식,중식,분식,카페-디저트,패스트푸드,기타)별 음식점 리스트를 조회할 수 있습니다. sortBy=desc(투표 많은 순, 기본값), sortBy=asc(투표 적은 순)")
+    @GetMapping("/type/{restaurantType}")
+    public ResponseEntity<List<Restaurant>> getRestaurantsByType(
+            @PathVariable RestaurantType.TypeName restaurantType,
+            @RequestParam(defaultValue = "desc") String sortBy) {
+
+        List<Restaurant> restaurants;
+        if (sortBy.equals("asc")) {
+            restaurants = restaurantService.findByRestaurantTypeOrderByVoteAsc(restaurantType);
+        } else {
+            restaurants = restaurantService.findByRestaurantTypeOrderByVoteDesc(restaurantType);
+        }
+        return ResponseEntity.ok(restaurants);
+    }
+
+    // 수정 - OAuth2 사용자 인증
+    @Operation(summary = "음식점 수정 API", description = "음식점 UPDATE 기능입니다. 수정하고 싶은 필드 값만 입력해도 가능합니다. 로그인한 사용자의 음식점만 수정 가능합니다.")
     @PutMapping("/{restaurantId}")
-    public ResponseEntity<Restaurant> updateRestaurant(@PathVariable Long restaurantId, @RequestParam Long userId, @RequestBody @Valid UpdateRestaurantRequest updateRestaurantRequest) {
+    public ResponseEntity<Void> updateRestaurant(
+            @PathVariable Long restaurantId,
+            @AuthenticationPrincipal DefaultOAuth2User oauthUser,
+            @RequestBody @Valid UpdateRestaurantRequest updateRestaurantRequest) {
+
+        if (oauthUser == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+
+        String email = (String) oauthUser.getAttribute("email");
+        User user = oAuthRepository.findUserByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자 정보가 없습니다."));
+
+        restaurantService.updateRestaurant(restaurantId, user.getUserid(), updateRestaurantRequest);
+        return ResponseEntity.noContent().build();
+    }
+
+    // 삭제 - OAuth2 사용자 인증
+    @Operation(summary = "음식점 삭제 API", description = "음식점 DELETE 기능입니다. 로그인한 사용자의 음식점만 삭제 가능합니다.")
+    @DeleteMapping("/{restaurantId}")
+    public ResponseEntity<Void> deleteRestaurant(
+            @PathVariable Long restaurantId,
+            @AuthenticationPrincipal DefaultOAuth2User oauthUser) {
+
+        if (oauthUser == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+
+        String email = (String) oauthUser.getAttribute("email");
+        User user = oAuthRepository.findUserByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자 정보가 없습니다."));
+
+        restaurantService.deleteRestaurant(restaurantId, user.getUserid());
+        return ResponseEntity.noContent().build();
+    }
+
+    // 개발용 임시 API (OAuth2 인증 없이 테스트)
+    @Operation(summary = "음식점 수정 API (개발용)", description = "개발용 임시 API입니다. OAuth2 인증 없이 테스트할 수 있습니다.")
+    @PutMapping("/{restaurantId}/temp")
+    public ResponseEntity<Void> updateRestaurantTemp(
+            @PathVariable Long restaurantId,
+            @RequestParam Long userId,
+            @RequestBody @Valid UpdateRestaurantRequest updateRestaurantRequest) {
 
         restaurantService.updateRestaurant(restaurantId, userId, updateRestaurantRequest);
         return ResponseEntity.noContent().build();
     }
 
-    // 삭제 ex)/api/restaurants/10?userId=1
-    // TODO: userID FK 추가 예정
-    @Operation(summary = "음식점 삭제 API", description = "음식점 DELETE 기능입니다.")
-    @DeleteMapping("/{restaurantId}")
-    public ResponseEntity<Void> deleteRestaurant(@PathVariable Long restaurantId, @RequestParam Long userId) {
+    @Operation(summary = "음식점 삭제 API (개발용)", description = "개발용 임시 API입니다. OAuth2 인증 없이 테스트할 수 있습니다.")
+    @DeleteMapping("/{restaurantId}/temp")
+    public ResponseEntity<Void> deleteRestaurantTemp(
+            @PathVariable Long restaurantId,
+            @RequestParam Long userId) {
 
         restaurantService.deleteRestaurant(restaurantId, userId);
         return ResponseEntity.noContent().build();
