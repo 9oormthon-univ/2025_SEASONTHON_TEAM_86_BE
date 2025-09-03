@@ -12,6 +12,7 @@ public class Restaurant {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long restaurantId;
 
+    // TODO: FK 추가 예정
     @Column(name="user_id", nullable = false)
     private Long userId;
 

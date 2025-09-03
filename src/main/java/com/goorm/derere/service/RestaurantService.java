@@ -27,4 +27,10 @@ public class RestaurantService {
         );
         return restaurantRepository.save(restaurant);
     }
+
+    @Transactional
+    public void deleteRestaurant(Long restaurantId, Long userId) {
+        long result = restaurantRepository.deleteByRestaurantIdAndUserId(restaurantId, userId);
+        if (result == 0) throw new IllegalArgumentException("삭제 권한 혹은 해당 음식점이 없습니다.");
+    }
 }

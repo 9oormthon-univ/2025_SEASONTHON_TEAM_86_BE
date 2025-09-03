@@ -9,10 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 
@@ -35,5 +32,15 @@ public class RestaurantController {
         return ResponseEntity
                 .created(URI.create("/api/restaurants/" + result.getRestaurantId()))
                 .body(result);
+    }
+
+    // 음식점 삭제
+    // TODO: userID FK 추가 예정
+    @Operation(summary = "음식점 삭제 API", description = "음식점 DELETE 기능입니다.")
+    @DeleteMapping("/{restaurantId}")
+    public ResponseEntity<Void> deleteRestaurant(@PathVariable Long restaurantId, @RequestParam Long userId) { // ex) DELETE /api/restaurants/10?userId=1
+
+        restaurantService.deleteRestaurant(restaurantId, userId);
+        return ResponseEntity.noContent().build();
     }
 }
