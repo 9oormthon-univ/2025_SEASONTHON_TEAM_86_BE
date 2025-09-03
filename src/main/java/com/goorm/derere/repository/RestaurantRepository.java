@@ -2,6 +2,7 @@ package com.goorm.derere.repository;
 
 import com.goorm.derere.entity.Restaurant;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,4 +13,13 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     long deleteByRestaurantIdAndUserId(Long restaurantId, Long userId);
 
     Optional<Restaurant> findByRestaurantIdAndUserId(Long restaurantId, Long userId);
+
+    // 좋아요 내림차순 정렬
+    List<Restaurant> findAllByOrderByRestaurantLikeDesc();
+
+    // 좋아요 TOP 1 음식점
+    Optional<Restaurant> findTop1ByOrderByRestaurantLikeDesc();
+
+    // 좋아요 TOP 3 음식점
+    List<Restaurant> findTop3ByOrderByRestaurantLikeDesc();
 }

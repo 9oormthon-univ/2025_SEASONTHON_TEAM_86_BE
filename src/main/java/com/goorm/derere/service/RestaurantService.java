@@ -56,4 +56,23 @@ public class RestaurantService {
     public List<Restaurant> getAllRestaurants() {
         return restaurantRepository.findAll();
     }
+
+    // 좋아요 내림차순 정렬
+    @Transactional(readOnly = true)
+    public List<Restaurant> getAllRestaurantsOrderByLike() {
+        return restaurantRepository.findAllByOrderByRestaurantLikeDesc();
+    }
+
+    // 좋아요 TOP 1 음식점
+    @Transactional(readOnly = true)
+    public Restaurant getTop1RestaurantByLike() {
+        return restaurantRepository.findTop1ByOrderByRestaurantLikeDesc()
+                .orElseThrow(() -> new IllegalArgumentException("좋아요 TOP 1 음식점이 없습니다."));
+    }
+
+    // 좋아요 TOP 3 음식점
+    @Transactional(readOnly = true)
+    public List<Restaurant> getTop3RestaurantsByLike() {
+        return restaurantRepository.findTop3ByOrderByRestaurantLikeDesc();
+    }
 }
