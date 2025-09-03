@@ -22,7 +22,7 @@ public class AddRestaurantRequest {
     private String restaurantType;
 
     @NotBlank
-    @Pattern(regexp = "^\\d{3}-\\d{3,4}-\\d{4}$", message = "연락처는 000-0000-0000 형식이어야 합니다.")
+    @Pattern(regexp = "^\\d{2,3}-\\d{3,4}-\\d{4}$", message = "연락처는 (0)00-(0)000-0000 형식이어야 합니다.")
     private String restaurantNum;
 
     @NotBlank @Size(max = 100)
