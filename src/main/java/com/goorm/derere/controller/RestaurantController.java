@@ -3,7 +3,6 @@ package com.goorm.derere.controller;
 import com.goorm.derere.dto.AddRestaurantRequest;
 import com.goorm.derere.dto.UpdateRestaurantRequest;
 import com.goorm.derere.entity.Restaurant;
-import com.goorm.derere.repository.RestaurantRepository;
 import com.goorm.derere.service.RestaurantService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -72,6 +71,17 @@ public class RestaurantController {
         return ResponseEntity.ok(restaurants);
     }
 
+    // 이름 검색 투표/좋아요 수 정렬 ex)/api/restaurant/search?restaurantName=스시&sortBy=like
+    @Operation(summary = "이름 검색 API", description = "이름을 입력하여 음식점 리스트를 조회할 수 있습니다. vote/like로 정렬을 선택할 수 있습니다. (입력 없으면 기본으로 투표 수 정렬)")
+    @GetMapping("/search")
+    public ResponseEntity<List<Restaurant>> getRestaurantsByName(@RequestParam String restaurantName, @RequestParam(defaultValue = "vote") String sortBy) {
+
+        List<Restaurant> restaurants;
+        if (sortBy.equals("like")) { restaurants = restaurantService.findByRestaurantNameOrderByLike(restaurantName); }
+        else { restaurants = restaurantService.findByRestaurantNameOrderByVote(restaurantName);}
+        return ResponseEntity.ok(restaurants);
+    }
+
     // 수정
     // TODO: userID FK 추가 예정
     @Operation(summary = "음식점 수정 API", description = "음식점 UPDATE 기능입니다. 수정하고 싶은 필드 값만 입력해도 가능합니다.")
@@ -82,11 +92,11 @@ public class RestaurantController {
         return ResponseEntity.noContent().build();
     }
 
-    // 삭제
+    // 삭제 ex)/api/restaurants/10?userId=1
     // TODO: userID FK 추가 예정
     @Operation(summary = "음식점 삭제 API", description = "음식점 DELETE 기능입니다.")
     @DeleteMapping("/{restaurantId}")
-    public ResponseEntity<Void> deleteRestaurant(@PathVariable Long restaurantId, @RequestParam Long userId) { // ex) DELETE /api/restaurants/10?userId=1
+    public ResponseEntity<Void> deleteRestaurant(@PathVariable Long restaurantId, @RequestParam Long userId) {
 
         restaurantService.deleteRestaurant(restaurantId, userId);
         return ResponseEntity.noContent().build();

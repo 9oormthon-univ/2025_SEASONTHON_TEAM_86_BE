@@ -75,4 +75,16 @@ public class RestaurantService {
     public List<Restaurant> getTop3RestaurantsByLike() {
         return restaurantRepository.findTop3ByOrderByRestaurantLikeDesc();
     }
+
+    // 이름 검색 투표 수 정렬
+    @Transactional(readOnly = true)
+    public List<Restaurant> findByRestaurantNameOrderByVote(String restaurantName) {
+        return restaurantRepository.findByRestaurantNameOrderByVote(restaurantName);
+    }
+
+    // 이름 검색 좋아요 수 정렬
+    @Transactional(readOnly = true)
+    public List<Restaurant> findByRestaurantNameOrderByLike(String restaurantName) {
+        return restaurantRepository.findByRestaurantNameOrderByLike(restaurantName);
+    }
 }

@@ -22,4 +22,12 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
 
     // 좋아요 TOP 3 음식점
     List<Restaurant> findTop3ByOrderByRestaurantLikeDesc();
+
+    // 이름 검색 투표수 정렬
+    @Query(value = "SELECT * FROM restaurant WHERE MATCH(restaurant_name) AGAINST(?1) ORDER BY restaurant_vote DESC", nativeQuery = true)
+    List<Restaurant> findByRestaurantNameOrderByVote(String restaurantName);
+
+    // 이름 검색 좋아요수 정렬
+    @Query(value = "SELECT * FROM restaurant WHERE MATCH(restaurant_name) AGAINST(?1) ORDER BY restaurant_like DESC", nativeQuery = true)
+    List<Restaurant> findByRestaurantNameOrderByLike(String restaurantName);
 }
