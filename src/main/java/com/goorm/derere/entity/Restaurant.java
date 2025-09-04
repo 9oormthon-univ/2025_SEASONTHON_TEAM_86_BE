@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -47,6 +50,11 @@ public class Restaurant {
     @Column(nullable = false)
     private boolean restaurantOpen = false;
 
+    // RestaurantMenu와 OneToMany 관계 설정
+    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonIgnoreProperties("restaurant") // JSON 직렬화 시 순환참조 방지
+    private List<RestaurantMenu> menus = new ArrayList<>();
+
     // 음식점 생성
     public Restaurant(String restaurantName, User user, String restaurantInfo,
                       RestaurantType restaurantType, String restaurantNum, String restaurantAddress, String restaurantTime) {
@@ -70,4 +78,18 @@ public class Restaurant {
     public void changeNum(String num){ this.restaurantNum = num; }
     public void changeAddress(String addr){ this.restaurantAddress = addr; }
     public void changeTime(String time){ this.restaurantTime = time; }
+
+    // 메뉴 관련 편의 메소드
+    public void addMenu(RestaurantMenu menu) {
+        menus.add(menu);
+    }
+
+    public void removeMenu(RestaurantMenu menu) {
+        menus.remove(menu);
+    }
+
+    // 메뉴 개수 조회
+    public int getMenuCount() {
+        return menus.size();
+    }
 }

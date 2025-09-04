@@ -146,7 +146,7 @@ public class RestaurantController {
         return ResponseEntity.noContent().build();
     }
 
-    // 개발용 임시 API (OAuth2 인증 없이 테스트)
+    // 개발용 임시 API (OAuth2 인증 없이 테스트) http://localhost:8080/api/restaurant/1/temp?userId=1
     @Operation(summary = "음식점 수정 API (개발용)", description = "개발용 임시 API입니다. OAuth2 인증 없이 테스트할 수 있습니다.")
     @PutMapping("/{restaurantId}/temp")
     public ResponseEntity<Void> updateRestaurantTemp(

@@ -9,6 +9,7 @@ import lombok.Getter;
 
 @Getter
 public class AddRestaurantRequest {
+
     @NotBlank
     @Size(max = 50)
     private String restaurantName;
