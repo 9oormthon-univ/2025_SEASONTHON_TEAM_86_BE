@@ -1,5 +1,6 @@
 package com.goorm.derere.dto;
 
+import com.goorm.derere.entity.RestaurantType;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -12,8 +13,7 @@ public class UpdateRestaurantRequest {
 
     private String restaurantInfo;
 
-    @Size(max = 20)
-    private String restaurantType;
+    private RestaurantType.TypeName restaurantType;
 
     @Pattern(regexp = "^\\d{3}-\\d{3,4}-\\d{4}$")
     private String restaurantNum;
