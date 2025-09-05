@@ -36,7 +36,6 @@ public class SurveyController {
         return surveyService.saveAnswers(answers);
     }
 
-
     //특정 설문에 대한 내 응답 조회 (사용자)
     @GetMapping("/answers/{userid}/restaurant/{restaurantId}")
     public ResponseEntity<List<SurveyAnswer>> getUserAnswersByRestaurant(@PathVariable Long userid, @PathVariable Long restaurantId) {
@@ -59,7 +58,6 @@ public class SurveyController {
         surveyService.deleteAnswersByUserAndRestaurant(userid, restaurantId);
         return ResponseEntity.noContent().build();
     }
-
 
     // 점주: 설문조사 통계 조회
     @GetMapping("/{surveyId}/stats")

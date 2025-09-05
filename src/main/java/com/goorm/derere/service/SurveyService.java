@@ -55,7 +55,7 @@ public class SurveyService {
         answerRepo.deleteByUseridAndRestaurantId(userid, restaurantId);
     }
 
-    // 점주용 통계: 각 설문항목별 응답 수 통계 조회
+    // 각 설문항목별 응답 수 통계 조회 (점주용)
     public Map<Integer, Long> getSurveyStats(Integer surveyId) {
         List<SurveyAnswer> answers = answerRepo.findBySurveyId(surveyId);
 
