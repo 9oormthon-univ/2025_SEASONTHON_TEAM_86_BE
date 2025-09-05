@@ -1,8 +1,8 @@
 package com.goorm.derere.controller;
 
 import com.goorm.derere.dto.AddRestaurantRequest;
+import com.goorm.derere.dto.RestaurantResponse;
 import com.goorm.derere.dto.UpdateRestaurantRequest;
-import com.goorm.derere.entity.Restaurant;
 import com.goorm.derere.entity.RestaurantType;
 import com.goorm.derere.entity.User;
 import com.goorm.derere.repository.OAuthRepository;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.List;
 
-@Tag(name = "음식점 API", description = "음식점 CRUD 기능 및 검색 기능 입니다.")
+@Tag(name = "음식점 API", description = "음식점 CRUD 기능 및 검색 기능입니다.")
 @RestController
 @RequestMapping("/api/restaurant")
 @RequiredArgsConstructor
@@ -31,7 +31,7 @@ public class RestaurantController {
     // 생성
     @Operation(summary = "음식점 생성 API", description = "음식점 CREATE 기능입니다.")
     @PostMapping
-    public ResponseEntity<Restaurant> addRestaurant(@RequestBody @Valid AddRestaurantRequest addRestaurantRequest) {
+    public ResponseEntity<RestaurantResponse> addRestaurant(@RequestBody @Valid AddRestaurantRequest addRestaurantRequest) {
 
         var result = restaurantService.addRestaurant(addRestaurantRequest);
         return ResponseEntity
@@ -42,7 +42,7 @@ public class RestaurantController {
     // 전체 조회
     @Operation(summary = "음식점 조회 API", description = "음식점 READ 기능입니다. 전체 음식점 리스트를 확인할 수 있습니다.")
     @GetMapping
-    public ResponseEntity<List<Restaurant>> getAllRestaurants() {
+    public ResponseEntity<List<RestaurantResponse>> getAllRestaurants() {
 
         var result = restaurantService.getAllRestaurants();
         return ResponseEntity.ok(result);
@@ -52,7 +52,7 @@ public class RestaurantController {
     @Operation(summary = "전체 좋아요수 정렬 API",
             description = "전체 음식점을 좋아요수 내림차순으로 정렬하여 조회합니다.")
     @GetMapping("/like/all")
-    public ResponseEntity<List<Restaurant>> getAllRestaurantsOrderByLike() {
+    public ResponseEntity<List<RestaurantResponse>> getAllRestaurantsOrderByLike() {
 
         var result = restaurantService.getAllRestaurantsOrderByLike();
         return ResponseEntity.ok(result);
@@ -61,7 +61,7 @@ public class RestaurantController {
     // 좋아요 TOP 1 음식점
     @Operation(summary = "좋아요 TOP 1 음식점 API", description = "좋아요수가 가장 많은 음식점 1곳을 조회합니다.")
     @GetMapping("/like/top1")
-    public ResponseEntity<Restaurant> getTop1RestaurantByLike() {
+    public ResponseEntity<RestaurantResponse> getTop1RestaurantByLike() {
 
         var restaurant = restaurantService.getTop1RestaurantByLike();
         return ResponseEntity.ok(restaurant);
@@ -70,7 +70,7 @@ public class RestaurantController {
     // 좋아요 TOP 3 음식점
     @Operation(summary = "좋아요 TOP 3 음식점 API", description = "좋아요수가 가장 많은 3곳의 음식점을 조회합니다.")
     @GetMapping("/like/top3")
-    public ResponseEntity<List<Restaurant>> getTop3RestaurantsByLike() {
+    public ResponseEntity<List<RestaurantResponse>> getTop3RestaurantsByLike() {
 
         var restaurants = restaurantService.getTop3RestaurantsByLike();
         return ResponseEntity.ok(restaurants);
@@ -79,9 +79,9 @@ public class RestaurantController {
     // 이름 검색 투표/좋아요 수 정렬 ex)/api/restaurant/search?restaurantName=스시&sortBy=like
     @Operation(summary = "이름 검색 API", description = "이름을 입력하여 음식점 리스트를 조회할 수 있습니다. vote/like로 정렬을 선택할 수 있습니다. (입력 없으면 기본으로 투표 수 정렬)")
     @GetMapping("/search")
-    public ResponseEntity<List<Restaurant>> getRestaurantsByName(@RequestParam String restaurantName, @RequestParam(defaultValue = "vote") String sortBy) {
+    public ResponseEntity<List<RestaurantResponse>> getRestaurantsByName(@RequestParam String restaurantName, @RequestParam(defaultValue = "vote") String sortBy) {
 
-        List<Restaurant> restaurants;
+        List<RestaurantResponse> restaurants;
         if (sortBy.equals("like")) {
             restaurants = restaurantService.findByRestaurantNameOrderByLike(restaurantName);
         } else {
@@ -94,11 +94,11 @@ public class RestaurantController {
     @Operation(summary = "음식점 타입별 조회 API",
             description = "음식점 타입(양식,한식,일식,중식,분식,카페-디저트,패스트푸드,기타)별 음식점 리스트를 조회할 수 있습니다. sortBy=desc(투표 많은 순, 기본값), sortBy=asc(투표 적은 순)")
     @GetMapping("/type/{restaurantType}")
-    public ResponseEntity<List<Restaurant>> getRestaurantsByType(
+    public ResponseEntity<List<RestaurantResponse>> getRestaurantsByType(
             @PathVariable RestaurantType.TypeName restaurantType,
             @RequestParam(defaultValue = "desc") String sortBy) {
 
-        List<Restaurant> restaurants;
+        List<RestaurantResponse> restaurants;
         if (sortBy.equals("asc")) {
             restaurants = restaurantService.findByRestaurantTypeOrderByVoteAsc(restaurantType);
         } else {

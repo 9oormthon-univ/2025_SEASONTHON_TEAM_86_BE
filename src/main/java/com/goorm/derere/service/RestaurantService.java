@@ -1,6 +1,7 @@
 package com.goorm.derere.service;
 
 import com.goorm.derere.dto.AddRestaurantRequest;
+import com.goorm.derere.dto.RestaurantResponse;
 import com.goorm.derere.dto.UpdateRestaurantRequest;
 import com.goorm.derere.entity.Restaurant;
 import com.goorm.derere.entity.RestaurantType;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +25,7 @@ public class RestaurantService {
     private final UserRepository userRepository;
 
     @Transactional
-    public Restaurant addRestaurant(AddRestaurantRequest addRestaurantRequest) {
+    public RestaurantResponse addRestaurant(AddRestaurantRequest addRestaurantRequest) {
 
         // User 엔티티 조회
         User user = userRepository.findById(addRestaurantRequest.getUserId())
@@ -52,7 +54,8 @@ public class RestaurantService {
                 addRestaurantRequest.getRestaurantTime()
         );
 
-        return restaurantRepository.save(restaurant);
+        Restaurant savedRestaurant = restaurantRepository.save(restaurant);
+        return new RestaurantResponse(savedRestaurant);
     }
 
     @Transactional
@@ -96,50 +99,65 @@ public class RestaurantService {
 
     // 전체 조회
     @Transactional(readOnly = true)
-    public List<Restaurant> getAllRestaurants() {
-        return restaurantRepository.findAll();
+    public List<RestaurantResponse> getAllRestaurants() {
+        return restaurantRepository.findAll().stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
     }
 
     // 좋아요 내림차순 정렬
     @Transactional(readOnly = true)
-    public List<Restaurant> getAllRestaurantsOrderByLike() {
-        return restaurantRepository.findAllByOrderByRestaurantLikeDesc();
+    public List<RestaurantResponse> getAllRestaurantsOrderByLike() {
+        return restaurantRepository.findAllByOrderByRestaurantLikeDesc().stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
     }
 
     // 좋아요 TOP 1 음식점
     @Transactional(readOnly = true)
-    public Restaurant getTop1RestaurantByLike() {
-        return restaurantRepository.findTop1ByOrderByRestaurantLikeDesc()
+    public RestaurantResponse getTop1RestaurantByLike() {
+        Restaurant restaurant = restaurantRepository.findTop1ByOrderByRestaurantLikeDesc()
                 .orElseThrow(() -> new IllegalArgumentException("좋아요 TOP 1 음식점이 없습니다."));
+        return new RestaurantResponse(restaurant);
     }
 
     // 좋아요 TOP 3 음식점
     @Transactional(readOnly = true)
-    public List<Restaurant> getTop3RestaurantsByLike() {
-        return restaurantRepository.findTop3ByOrderByRestaurantLikeDesc();
+    public List<RestaurantResponse> getTop3RestaurantsByLike() {
+        return restaurantRepository.findTop3ByOrderByRestaurantLikeDesc().stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
     }
 
     // 이름 검색 투표 수 정렬
     @Transactional(readOnly = true)
-    public List<Restaurant> findByRestaurantNameOrderByVote(String restaurantName) {
-        return restaurantRepository.findByRestaurantNameOrderByVote(restaurantName);
+    public List<RestaurantResponse> findByRestaurantNameOrderByVote(String restaurantName) {
+        return restaurantRepository.findByRestaurantNameOrderByVote(restaurantName).stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
     }
 
     // 이름 검색 좋아요 수 정렬
     @Transactional(readOnly = true)
-    public List<Restaurant> findByRestaurantNameOrderByLike(String restaurantName) {
-        return restaurantRepository.findByRestaurantNameOrderByLike(restaurantName);
+    public List<RestaurantResponse> findByRestaurantNameOrderByLike(String restaurantName) {
+        return restaurantRepository.findByRestaurantNameOrderByLike(restaurantName).stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
     }
 
     // 음식점 타입으로 검색 투표 많은 순 정렬
     @Transactional(readOnly = true)
-    public List<Restaurant> findByRestaurantTypeOrderByVoteDesc(RestaurantType.TypeName typeName) {
-        return restaurantRepository.findByRestaurantType_TypeNameOrderByRestaurantVoteDesc(typeName);
+    public List<RestaurantResponse> findByRestaurantTypeOrderByVoteDesc(RestaurantType.TypeName typeName) {
+        return restaurantRepository.findByRestaurantType_TypeNameOrderByRestaurantVoteDesc(typeName).stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
     }
 
     // 음식점 타입으로 검색 투표 적은 순 정렬
     @Transactional(readOnly = true)
-    public List<Restaurant> findByRestaurantTypeOrderByVoteAsc(RestaurantType.TypeName typeName) {
-        return restaurantRepository.findByRestaurantType_TypeNameOrderByRestaurantVoteAsc(typeName);
+    public List<RestaurantResponse> findByRestaurantTypeOrderByVoteAsc(RestaurantType.TypeName typeName) {
+        return restaurantRepository.findByRestaurantType_TypeNameOrderByRestaurantVoteAsc(typeName).stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
     }
 }
