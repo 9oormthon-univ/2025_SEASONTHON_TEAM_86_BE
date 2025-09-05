@@ -1,6 +1,7 @@
 package com.goorm.derere.service;
 
 import com.goorm.derere.dto.AddRestaurantRequest;
+import com.goorm.derere.dto.RestaurantDetailResponse;
 import com.goorm.derere.dto.RestaurantResponse;
 import com.goorm.derere.dto.UpdateRestaurantRequest;
 import com.goorm.derere.entity.Restaurant;
@@ -58,7 +59,8 @@ public class RestaurantService {
                     restaurantType,
                     addRestaurantRequest.getRestaurantNum(),
                     addRestaurantRequest.getRestaurantAddress(),
-                    addRestaurantRequest.getRestaurantTime(),
+                    addRestaurantRequest.getRestaurantStartTime(),
+                    addRestaurantRequest.getRestaurantEndTime(),
                     addRestaurantRequest.getRestaurantImageUrl()
             );
         } else {
@@ -69,7 +71,8 @@ public class RestaurantService {
                     restaurantType,
                     addRestaurantRequest.getRestaurantNum(),
                     addRestaurantRequest.getRestaurantAddress(),
-                    addRestaurantRequest.getRestaurantTime()
+                    addRestaurantRequest.getRestaurantStartTime(),
+                    addRestaurantRequest.getRestaurantEndTime()
             );
         }
 
@@ -126,7 +129,8 @@ public class RestaurantService {
         }
         if (updateRestaurantRequest.getRestaurantNum() != null) {restaurant.changeNum(updateRestaurantRequest.getRestaurantNum());}
         if (updateRestaurantRequest.getRestaurantAddress() != null) {restaurant.changeAddress(updateRestaurantRequest.getRestaurantAddress());}
-        if (updateRestaurantRequest.getRestaurantTime() != null) {restaurant.changeTime(updateRestaurantRequest.getRestaurantTime());}
+        if (updateRestaurantRequest.getRestaurantStartTime() != null) {restaurant.changeStartTime(updateRestaurantRequest.getRestaurantStartTime());}
+        if (updateRestaurantRequest.getRestaurantEndTime() != null) {restaurant.changeEndTime(updateRestaurantRequest.getRestaurantEndTime());}
 
         // 이미지 URL 업데이트 처리
         if (updateRestaurantRequest.getRestaurantImageUrl() != null) {
@@ -156,6 +160,14 @@ public class RestaurantService {
                 .collect(Collectors.toList());
     }
 
+    // 단일 음식점 조회 (메뉴 포함)
+    @Transactional(readOnly = true)
+    public RestaurantDetailResponse getRestaurantById(Long restaurantId) {
+        Restaurant restaurant = restaurantRepository.findById(restaurantId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 음식점이 없습니다."));
+        return new RestaurantDetailResponse(restaurant);
+    }
+
     // 좋아요 내림차순 정렬
     @Transactional(readOnly = true)
     public List<RestaurantResponse> getAllRestaurantsOrderByLike() {
@@ -176,6 +188,22 @@ public class RestaurantService {
     @Transactional(readOnly = true)
     public List<RestaurantResponse> getTop3RestaurantsByLike() {
         return restaurantRepository.findTop3ByOrderByRestaurantLikeDesc().stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    // 투표수 내림차순 정렬
+    @Transactional(readOnly = true)
+    public List<RestaurantResponse> getAllRestaurantsOrderByVote() {
+        return restaurantRepository.findAllByOrderByRestaurantVoteDesc().stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    // 투표수 TOP 3 음식점
+    @Transactional(readOnly = true)
+    public List<RestaurantResponse> getTop3RestaurantsByVote() {
+        return restaurantRepository.findTop3ByOrderByRestaurantVoteDesc().stream()
                 .map(RestaurantResponse::new)
                 .collect(Collectors.toList());
     }

@@ -1,6 +1,7 @@
 package com.goorm.derere.controller;
 
 import com.goorm.derere.dto.AddRestaurantRequest;
+import com.goorm.derere.dto.RestaurantDetailResponse;
 import com.goorm.derere.dto.RestaurantResponse;
 import com.goorm.derere.dto.UpdateRestaurantRequest;
 import com.goorm.derere.entity.RestaurantType;
@@ -48,6 +49,15 @@ public class RestaurantController {
         return ResponseEntity.ok(result);
     }
 
+    // 단일 음식점 조회 (메뉴 포함)
+    @Operation(summary = "단일 음식점 상세 조회 API", description = "특정 음식점의 상세 정보와 메뉴 리스트를 함께 조회합니다.")
+    @GetMapping("/{restaurantId}")
+    public ResponseEntity<RestaurantDetailResponse> getRestaurantById(@PathVariable Long restaurantId) {
+
+        var result = restaurantService.getRestaurantById(restaurantId);
+        return ResponseEntity.ok(result);
+    }
+
     // 좋아요 정렬
     @Operation(summary = "전체 좋아요수 정렬 API",
             description = "전체 음식점을 좋아요수 내림차순으로 정렬하여 조회합니다.")
@@ -73,6 +83,25 @@ public class RestaurantController {
     public ResponseEntity<List<RestaurantResponse>> getTop3RestaurantsByLike() {
 
         var restaurants = restaurantService.getTop3RestaurantsByLike();
+        return ResponseEntity.ok(restaurants);
+    }
+
+    // 투표수 전체 정렬
+    @Operation(summary = "전체 투표수 정렬 API",
+            description = "전체 음식점을 투표수 내림차순으로 정렬하여 조회합니다.")
+    @GetMapping("/vote/all")
+    public ResponseEntity<List<RestaurantResponse>> getAllRestaurantsOrderByVote() {
+
+        var result = restaurantService.getAllRestaurantsOrderByVote();
+        return ResponseEntity.ok(result);
+    }
+
+    // 투표수 TOP 3 음식점
+    @Operation(summary = "투표수 TOP 3 음식점 API", description = "투표수가 가장 많은 3곳의 음식점을 조회합니다.")
+    @GetMapping("/vote/top3")
+    public ResponseEntity<List<RestaurantResponse>> getTop3RestaurantsByVote() {
+
+        var restaurants = restaurantService.getTop3RestaurantsByVote();
         return ResponseEntity.ok(restaurants);
     }
 

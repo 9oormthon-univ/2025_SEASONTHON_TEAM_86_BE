@@ -21,8 +21,11 @@ public class UpdateRestaurantRequest {
     @Size(max = 100)
     private String restaurantAddress;
 
-    @Size(max = 50)
-    private String restaurantTime;
+    @Size(max = 20)
+    private String restaurantStartTime;
+
+    @Size(max = 20)
+    private String restaurantEndTime;
 
     @Size(max = 500, message = "이미지 URL은 500자를 초과할 수 없습니다.")
     private String restaurantImageUrl;

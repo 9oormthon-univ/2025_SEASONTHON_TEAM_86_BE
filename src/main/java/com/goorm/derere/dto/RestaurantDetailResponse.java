@@ -4,8 +4,11 @@ import com.goorm.derere.entity.Restaurant;
 import com.goorm.derere.entity.RestaurantType;
 import lombok.Getter;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Getter
-public class RestaurantResponse {
+public class RestaurantDetailResponse {
 
     private final Long restaurantId;
     private final String restaurantName;
@@ -20,8 +23,9 @@ public class RestaurantResponse {
     private final String ownerUsername;
     private final Long ownerId;
     private final String restaurantImageUrl;
+    private final List<RestaurantMenuResponse> menus;
 
-    public RestaurantResponse(Restaurant restaurant) {
+    public RestaurantDetailResponse(Restaurant restaurant) {
         this.restaurantId = restaurant.getRestaurantId();
         this.restaurantName = restaurant.getRestaurantName();
         this.restaurantInfo = restaurant.getRestaurantInfo();
@@ -35,5 +39,8 @@ public class RestaurantResponse {
         this.ownerUsername = restaurant.getUser().getUsername();
         this.ownerId = restaurant.getUser().getUserid();
         this.restaurantImageUrl = restaurant.getRestaurantImageUrl();
+        this.menus = restaurant.getMenus().stream()
+                .map(RestaurantMenuResponse::new)
+                .collect(Collectors.toList());
     }
 }
