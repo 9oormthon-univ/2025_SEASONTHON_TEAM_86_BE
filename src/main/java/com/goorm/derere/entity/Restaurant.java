@@ -18,7 +18,7 @@ public class Restaurant {
 
     // User 엔티티와 OneToOne 관계 설정 (사용자는 하나의 음식점만 소유)
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JoinColumn(name = "userid", nullable = false, unique = true)
     private User user;
 
     @Column(nullable = false, length = 50)

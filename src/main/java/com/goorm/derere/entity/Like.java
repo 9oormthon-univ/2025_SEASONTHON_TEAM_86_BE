@@ -25,7 +25,7 @@ public class Like {
     private Long likeId;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "userid", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.EAGER)
