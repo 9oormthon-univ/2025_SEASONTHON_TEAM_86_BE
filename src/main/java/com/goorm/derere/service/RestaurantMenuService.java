@@ -8,6 +8,7 @@ import com.goorm.derere.entity.RestaurantMenu;
 import com.goorm.derere.repository.RestaurantMenuRepository;
 import com.goorm.derere.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,10 +17,12 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RestaurantMenuService {
 
     private final RestaurantMenuRepository restaurantMenuRepository;
     private final RestaurantRepository restaurantRepository;
+    private final S3Service s3Service;
 
     // 메뉴 생성
     @Transactional
@@ -29,15 +32,31 @@ public class RestaurantMenuService {
                         request.getRestaurantId(), userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 음식점이 없거나 접근 권한이 없습니다."));
 
-        // 메뉴 생성
-        RestaurantMenu menu = new RestaurantMenu(
-                restaurant,
-                request.getMenuName(),
-                request.getMenuPrice(),
-                request.getMenuInfo()
-        );
+        // 메뉴 생성 (이미지 URL 포함)
+        RestaurantMenu menu;
+        if (request.getMenuImageUrl() != null && !request.getMenuImageUrl().trim().isEmpty()) {
+            menu = new RestaurantMenu(
+                    restaurant,
+                    request.getMenuName(),
+                    request.getMenuPrice(),
+                    request.getMenuInfo(),
+                    request.getMenuImageUrl()
+            );
+        } else {
+            menu = new RestaurantMenu(
+                    restaurant,
+                    request.getMenuName(),
+                    request.getMenuPrice(),
+                    request.getMenuInfo()
+            );
+        }
 
         RestaurantMenu savedMenu = restaurantMenuRepository.save(menu);
+        log.info("메뉴 생성 완료 - ID: {}, 이름: {}, 이미지: {}",
+                savedMenu.getRestaurantMenuId(),
+                savedMenu.getMenuName(),
+                savedMenu.getMenuImageUrl());
+
         return new RestaurantMenuResponse(savedMenu);
     }
 
@@ -62,16 +81,32 @@ public class RestaurantMenuService {
         RestaurantMenu menu = restaurantMenuRepository.findByIdAndRestaurantOwner(menuId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 메뉴가 없거나 수정 권한이 없습니다."));
 
+        // 기존 이미지 URL 백업 (이미지 교체 시 삭제용)
+        String oldImageUrl = menu.getMenuImageUrl();
+
         // null이 아닌 값만 반영 (부분 수정)
-        if (request.getMenuName() != null) {
-            menu.changeName(request.getMenuName());
+        if (request.getMenuName() != null) {menu.changeName(request.getMenuName());}
+        if (request.getMenuPrice() != null) {menu.changePrice(request.getMenuPrice());}
+        if (request.getMenuInfo() != null) {menu.changeInfo(request.getMenuInfo());}
+
+        // 이미지 URL 업데이트 처리
+        if (request.getMenuImageUrl() != null) {
+            menu.changeImageUrl(request.getMenuImageUrl());
+
+            // 기존 이미지가 있고 새 이미지와 다르면 기존 이미지 삭제
+            if (oldImageUrl != null && !oldImageUrl.equals(request.getMenuImageUrl())) {
+                try {
+                    s3Service.deleteImage(oldImageUrl);
+                    log.info("메뉴 이미지 교체로 인한 기존 이미지 삭제 완료 - 메뉴ID: {}", menuId);
+                } catch (Exception e) {
+                    log.warn("기존 이미지 삭제 실패 - 메뉴ID: {}, 사유: {}", menuId, e.getMessage());
+                }
+            }
         }
-        if (request.getMenuPrice() != null) {
-            menu.changePrice(request.getMenuPrice());
-        }
-        if (request.getMenuInfo() != null) {
-            menu.changeInfo(request.getMenuInfo());
-        }
+
+        log.info("메뉴 수정 완료 - ID: {}, 이미지 변경: {}",
+                menuId,
+                request.getMenuImageUrl() != null);
 
         return new RestaurantMenuResponse(menu);
     }
@@ -79,9 +114,22 @@ public class RestaurantMenuService {
     // 메뉴 삭제
     @Transactional
     public void deleteRestaurantMenu(Long menuId, Long userId) {
+        // 삭제 전 이미지 URL 조회
+        RestaurantMenu menu = restaurantMenuRepository.findByIdAndRestaurantOwner(menuId, userId)
+                .orElse(null);
+
         int deletedCount = restaurantMenuRepository.deleteByIdAndRestaurantOwner(menuId, userId);
-        if (deletedCount == 0) {
-            throw new IllegalArgumentException("해당 메뉴가 없거나 삭제 권한이 없습니다.");
+        if (deletedCount == 0) {throw new IllegalArgumentException("해당 메뉴가 없거나 삭제 권한이 없습니다.");}
+
+        // 메뉴 삭제 후 S3 이미지도 삭제
+        if (menu != null && menu.getMenuImageUrl() != null) {
+            try {
+                s3Service.deleteImage(menu.getMenuImageUrl());
+                log.info("메뉴 삭제와 함께 이미지 삭제 완료 - 메뉴ID: {}", menuId);
+            } catch (Exception e) {
+                log.warn("메뉴 삭제는 완료되었으나 이미지 삭제 실패 - 메뉴ID: {}, 사유: {}",
+                        menuId, e.getMessage());
+            }
         }
     }
 

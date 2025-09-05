@@ -50,6 +50,10 @@ public class Restaurant {
     @Column(nullable = false)
     private boolean restaurantOpen = false;
 
+    // 음식점 이미지 URL (S3 이미지 주소)
+    @Column(length = 500)
+    private String restaurantImageUrl;
+
     // RestaurantMenu와 OneToMany 관계 설정
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonIgnoreProperties("restaurant") // JSON 직렬화 시 순환참조 방지
@@ -71,6 +75,14 @@ public class Restaurant {
         this.restaurantTime = restaurantTime;
     }
 
+    // 이미지 URL이 포함된 생성자
+    public Restaurant(String restaurantName, User user, String restaurantInfo,
+                      RestaurantType restaurantType, String restaurantNum, String restaurantAddress,
+                      String restaurantTime, String restaurantImageUrl) {
+        this(restaurantName, user, restaurantInfo, restaurantType, restaurantNum, restaurantAddress, restaurantTime);
+        this.restaurantImageUrl = restaurantImageUrl;
+    }
+
     // 음식점 수정
     public void changeName(String name){ this.restaurantName = name; }
     public void changeInfo(String info){ this.restaurantInfo = info; }
@@ -78,6 +90,7 @@ public class Restaurant {
     public void changeNum(String num){ this.restaurantNum = num; }
     public void changeAddress(String addr){ this.restaurantAddress = addr; }
     public void changeTime(String time){ this.restaurantTime = time; }
+    public void changeImageUrl(String imageUrl){ this.restaurantImageUrl = imageUrl; }
 
     // 메뉴 관련 편의 메소드
     public void addMenu(RestaurantMenu menu) {

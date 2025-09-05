@@ -27,6 +27,10 @@ public class RestaurantMenu {
     @Column(columnDefinition = "TEXT")
     private String menuInfo;
 
+    // 메뉴 이미지 URL (S3 이미지 주소)
+    @Column(length = 500)
+    private String menuImageUrl;
+
     // 메뉴 생성자
     public RestaurantMenu(Restaurant restaurant, String menuName, Integer menuPrice, String menuInfo) {
         validateMenuData(restaurant, menuName, menuPrice);
@@ -36,10 +40,17 @@ public class RestaurantMenu {
         this.menuInfo = menuInfo;
     }
 
+    // 이미지 URL이 포함된 생성자
+    public RestaurantMenu(Restaurant restaurant, String menuName, Integer menuPrice, String menuInfo, String menuImageUrl) {
+        this(restaurant, menuName, menuPrice, menuInfo);
+        this.menuImageUrl = menuImageUrl;
+    }
+
     // 메뉴 수정 메소드
     public void changeName(String menuName) {this.menuName = menuName;}
     public void changePrice(Integer menuPrice) {this.menuPrice = menuPrice;}
     public void changeInfo(String menuInfo) {this.menuInfo = menuInfo;}
+    public void changeImageUrl(String menuImageUrl) {this.menuImageUrl = menuImageUrl;}
 
     // 유효성 검증 메소드
     private void validateMenuData(Restaurant restaurant, String menuName, Integer menuPrice) {

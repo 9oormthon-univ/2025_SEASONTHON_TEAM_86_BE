@@ -24,5 +24,8 @@ public class UpdateRestaurantRequest {
     @Size(max = 50)
     private String restaurantTime;
 
+    @Size(max = 500, message = "이미지 URL은 500자를 초과할 수 없습니다.")
+    private String restaurantImageUrl;
+
     // 입력 값이 null 이면 기본 값으로 설정 -> 원하는 필드만 업데이트
 }

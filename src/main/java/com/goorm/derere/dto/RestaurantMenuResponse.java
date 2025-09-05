@@ -11,6 +11,7 @@ public class RestaurantMenuResponse {
     private final String menuName;
     private final Integer menuPrice;
     private final String menuInfo;
+    private final String menuImageUrl;
 
     public RestaurantMenuResponse(RestaurantMenu menu) {
         this.restaurantMenuId = menu.getRestaurantMenuId();
@@ -18,5 +19,6 @@ public class RestaurantMenuResponse {
         this.menuName = menu.getMenuName();
         this.menuPrice = menu.getMenuPrice();
         this.menuInfo = menu.getMenuInfo();
+        this.menuImageUrl = menu.getMenuImageUrl();
     }
 }
