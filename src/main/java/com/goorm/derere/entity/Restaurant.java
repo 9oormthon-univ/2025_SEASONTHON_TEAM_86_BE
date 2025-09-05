@@ -112,4 +112,22 @@ public class Restaurant {
     public int getMenuCount() {
         return menus.size();
     }
+
+    // 좋아요 수 설정 (Like 서비스에서 사용)
+    public void setRestaurantLike(Integer restaurantLike) {
+        if (restaurantLike < 0) {
+            throw new IllegalArgumentException("좋아요 수는 0 이상이어야 합니다.");
+        }
+        this.restaurantLike = restaurantLike;
+    }
+
+    // 좋아요 수 증가
+    public void incrementLike() {
+        this.restaurantLike++;
+    }
+
+    // 좋아요 수 감소 (0 이하로는 감소하지 않음)
+    public void decrementLike() {
+        this.restaurantLike = Math.max(0, this.restaurantLike - 1);
+    }
 }
