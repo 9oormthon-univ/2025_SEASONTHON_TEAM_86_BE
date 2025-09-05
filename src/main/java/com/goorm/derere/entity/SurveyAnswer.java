@@ -1,9 +1,7 @@
 package com.goorm.derere.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -17,9 +15,28 @@ import org.hibernate.annotations.DynamicUpdate;
 public class SurveyAnswer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer answer_id;
-    private Long restaurant_id;
+    @Column(name = "answer_id")
+    private Integer answerId;
+
+    @Column(name = "restaurant_id")
+    private Long restaurantId;
+
+    @Column(name = "userid")
     private Long userid;
-    private Integer option_id;
-    private Long survey_id;
+
+    @Column(name = "option_id")
+    private Integer optionId;
+
+    @Column(name = "survey_id")
+    private Integer surveyId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "option_id", insertable = false, updatable = false)
+    @JsonIgnore
+    private SurveyOption surveyOption;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "survey_id", insertable = false, updatable = false)
+    @JsonIgnore
+    private Survey survey;
 }

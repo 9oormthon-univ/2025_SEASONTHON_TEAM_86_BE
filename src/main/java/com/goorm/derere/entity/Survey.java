@@ -14,6 +14,11 @@ import org.hibernate.annotations.DynamicUpdate;
 public class Survey {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long survey_id;
-    private String survey_text;
+    @Column(name = "survey_id")
+    private Integer surveyId;
+
+    @Column(name = "survey_text")
+    private String surveyText;
 }
+
+
