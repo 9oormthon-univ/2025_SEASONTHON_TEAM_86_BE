@@ -86,6 +86,25 @@ public class RestaurantController {
         return ResponseEntity.ok(restaurants);
     }
 
+    // 투표수 전체 정렬
+    @Operation(summary = "전체 투표수 정렬 API",
+            description = "전체 음식점을 투표수 내림차순으로 정렬하여 조회합니다.")
+    @GetMapping("/vote/all")
+    public ResponseEntity<List<RestaurantResponse>> getAllRestaurantsOrderByVote() {
+
+        var result = restaurantService.getAllRestaurantsOrderByVote();
+        return ResponseEntity.ok(result);
+    }
+
+    // 투표수 TOP 3 음식점
+    @Operation(summary = "투표수 TOP 3 음식점 API", description = "투표수가 가장 많은 3곳의 음식점을 조회합니다.")
+    @GetMapping("/vote/top3")
+    public ResponseEntity<List<RestaurantResponse>> getTop3RestaurantsByVote() {
+
+        var restaurants = restaurantService.getTop3RestaurantsByVote();
+        return ResponseEntity.ok(restaurants);
+    }
+
     // 이름 검색 투표/좋아요 수 정렬 ex)/api/restaurant/search?restaurantName=스시&sortBy=like
     @Operation(summary = "이름 검색 API", description = "이름을 입력하여 음식점 리스트를 조회할 수 있습니다. vote/like로 정렬을 선택할 수 있습니다. (입력 없으면 기본으로 투표 수 정렬)")
     @GetMapping("/search")

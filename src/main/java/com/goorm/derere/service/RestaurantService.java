@@ -192,6 +192,22 @@ public class RestaurantService {
                 .collect(Collectors.toList());
     }
 
+    // 투표수 내림차순 정렬
+    @Transactional(readOnly = true)
+    public List<RestaurantResponse> getAllRestaurantsOrderByVote() {
+        return restaurantRepository.findAllByOrderByRestaurantVoteDesc().stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    // 투표수 TOP 3 음식점
+    @Transactional(readOnly = true)
+    public List<RestaurantResponse> getTop3RestaurantsByVote() {
+        return restaurantRepository.findTop3ByOrderByRestaurantVoteDesc().stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
+    }
+
     // 이름 검색 투표 수 정렬
     @Transactional(readOnly = true)
     public List<RestaurantResponse> findByRestaurantNameOrderByVote(String restaurantName) {
