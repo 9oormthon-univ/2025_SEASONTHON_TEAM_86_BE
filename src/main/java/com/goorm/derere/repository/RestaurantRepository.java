@@ -4,6 +4,7 @@ import com.goorm.derere.entity.Restaurant;
 import com.goorm.derere.entity.RestaurantType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -46,4 +47,7 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
 
     // 음식점 타입으로 검색 투표수 오름차순 정렬 (투표 적은 순)
     List<Restaurant> findByRestaurantType_TypeNameOrderByRestaurantVoteAsc(RestaurantType.TypeName typeName);
+
+    @Query("SELECT r.restaurantVote FROM Restaurant r WHERE r.restaurantId = :restaurantId")
+    Integer findVoteCountByRestaurantId(@Param("restaurantId") Long restaurantId);
 }
