@@ -29,8 +29,11 @@ public class AddRestaurantRequest {
     @NotBlank @Size(max = 100)
     private String restaurantAddress;
 
-    @NotBlank @Size(max = 50)
-    private String restaurantTime;
+    @NotBlank @Size(max = 20)
+    private String restaurantStartTime;
+
+    @NotBlank @Size(max = 20)
+    private String restaurantEndTime;
 
     @Size(max = 500, message = "이미지 URL은 500자를 초과할 수 없습니다.")
     private String restaurantImageUrl;

@@ -1,6 +1,7 @@
 package com.goorm.derere.controller;
 
 import com.goorm.derere.dto.AddRestaurantRequest;
+import com.goorm.derere.dto.RestaurantDetailResponse;
 import com.goorm.derere.dto.RestaurantResponse;
 import com.goorm.derere.dto.UpdateRestaurantRequest;
 import com.goorm.derere.entity.RestaurantType;
@@ -45,6 +46,15 @@ public class RestaurantController {
     public ResponseEntity<List<RestaurantResponse>> getAllRestaurants() {
 
         var result = restaurantService.getAllRestaurants();
+        return ResponseEntity.ok(result);
+    }
+
+    // 단일 음식점 조회 (메뉴 포함)
+    @Operation(summary = "단일 음식점 상세 조회 API", description = "특정 음식점의 상세 정보와 메뉴 리스트를 함께 조회합니다.")
+    @GetMapping("/{restaurantId}")
+    public ResponseEntity<RestaurantDetailResponse> getRestaurantById(@PathVariable Long restaurantId) {
+
+        var result = restaurantService.getRestaurantById(restaurantId);
         return ResponseEntity.ok(result);
     }
 

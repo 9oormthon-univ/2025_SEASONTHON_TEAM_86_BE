@@ -37,9 +37,12 @@ public class Restaurant {
 
     @Column(nullable = false, length = 100)
     private String restaurantAddress;
+    
+    @Column(nullable = false, length = 20)
+    private String restaurantStartTime;
 
-    @Column(nullable = false, length = 50)
-    private String restaurantTime;
+    @Column(nullable = false, length = 20)
+    private String restaurantEndTime;
 
     @Column(nullable = false)
     private Integer restaurantVote = 0;
@@ -61,7 +64,8 @@ public class Restaurant {
 
     // 음식점 생성
     public Restaurant(String restaurantName, User user, String restaurantInfo,
-                      RestaurantType restaurantType, String restaurantNum, String restaurantAddress, String restaurantTime) {
+                      RestaurantType restaurantType, String restaurantNum, String restaurantAddress,
+                      String restaurantStartTime, String restaurantEndTime) {
         if (restaurantName == null || restaurantName.isBlank()) throw new IllegalArgumentException("음식점 이름이 필요합니다.");
         if (user == null) throw new IllegalArgumentException("사용자 정보가 필요합니다.");
         if (restaurantType == null) throw new IllegalArgumentException("음식점 타입이 필요합니다.");
@@ -72,14 +76,16 @@ public class Restaurant {
         this.restaurantType = restaurantType;
         this.restaurantNum = restaurantNum;
         this.restaurantAddress = restaurantAddress;
-        this.restaurantTime = restaurantTime;
+        this.restaurantStartTime = restaurantStartTime;
+        this.restaurantEndTime = restaurantEndTime;
     }
 
     // 이미지 URL이 포함된 생성자
     public Restaurant(String restaurantName, User user, String restaurantInfo,
                       RestaurantType restaurantType, String restaurantNum, String restaurantAddress,
-                      String restaurantTime, String restaurantImageUrl) {
-        this(restaurantName, user, restaurantInfo, restaurantType, restaurantNum, restaurantAddress, restaurantTime);
+                      String restaurantStartTime, String restaurantEndTime, String restaurantImageUrl) {
+        this(restaurantName, user, restaurantInfo, restaurantType, restaurantNum, restaurantAddress,
+                restaurantStartTime, restaurantEndTime);
         this.restaurantImageUrl = restaurantImageUrl;
     }
 
@@ -89,7 +95,8 @@ public class Restaurant {
     public void changeType(RestaurantType type){ this.restaurantType = type; }
     public void changeNum(String num){ this.restaurantNum = num; }
     public void changeAddress(String addr){ this.restaurantAddress = addr; }
-    public void changeTime(String time){ this.restaurantTime = time; }
+    public void changeStartTime(String startTime){ this.restaurantStartTime = startTime; }
+    public void changeEndTime(String endTime){ this.restaurantEndTime = endTime; }
     public void changeImageUrl(String imageUrl){ this.restaurantImageUrl = imageUrl; }
 
     // 메뉴 관련 편의 메소드
