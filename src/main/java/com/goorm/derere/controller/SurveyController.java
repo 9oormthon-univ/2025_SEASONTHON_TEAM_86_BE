@@ -65,11 +65,12 @@ public class SurveyController {
         return surveyService.getSurveyStats(surveyId);
     }
 
-    // 음식점별 투표 수 조회 API
-    @GetMapping("/restaurant/{restaurantId}/count")
-    public ResponseEntity<Long> getParticipantCountByRestaurant(@PathVariable Long restaurantId) {
-        Long count = surveyService.getParticipantCountByRestaurant(restaurantId);
+    // 음식점별 투표 수 조회
+    @GetMapping("/restaurant/{restaurantId}/votes")
+    public ResponseEntity<Long> getVoteCountByRestaurant(@PathVariable Long restaurantId) {
+        Long count = surveyService.getVoteCountByRestaurant(restaurantId);
         return ResponseEntity.ok(count);
     }
+
 }
 
