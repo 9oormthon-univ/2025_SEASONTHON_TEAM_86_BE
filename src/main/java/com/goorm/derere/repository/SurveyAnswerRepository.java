@@ -2,6 +2,7 @@ package com.goorm.derere.repository;
 
 import com.goorm.derere.entity.SurveyAnswer;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,4 +14,6 @@ public interface SurveyAnswerRepository extends JpaRepository<SurveyAnswer, Inte
     void deleteByUseridAndRestaurantId(Long userid, Long restaurantId);
     List<SurveyAnswer> findBySurveyId(Integer surveyId);
     List<SurveyAnswer> findByUseridAndRestaurantId(Long userid, Long restaurantId);
+    @Query("SELECT COUNT(DISTINCT sa.userid) FROM SurveyAnswer sa WHERE sa.restaurantId = :restaurantId")
+    Long countDistinctUseridByRestaurantId(Long restaurantId);
 }

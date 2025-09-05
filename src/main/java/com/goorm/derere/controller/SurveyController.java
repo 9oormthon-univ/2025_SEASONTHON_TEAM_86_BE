@@ -31,7 +31,7 @@ public class SurveyController {
     }
 
     // 설문 응답 저장 (사용자)
-    @PostMapping("/answers/batch")
+    @PostMapping("/answers")
     public List<SurveyAnswer> createAnswers(@RequestBody List<SurveyAnswer> answers) {
         return surveyService.saveAnswers(answers);
     }
@@ -47,7 +47,7 @@ public class SurveyController {
     }
 
     // 설문 응답 수정 (사용자)
-    @PutMapping("/answers/batch")
+    @PutMapping("/answers")
     public List<SurveyAnswer> updateAnswers(@RequestBody List<SurveyAnswer> answers) {
         return surveyService.updateAnswers(answers);
     }
@@ -63,6 +63,13 @@ public class SurveyController {
     @GetMapping("/{surveyId}/stats")
     public Map<Integer, Long> getSurveyStats(@PathVariable Integer surveyId) {
         return surveyService.getSurveyStats(surveyId);
+    }
+
+    // 음식점별 투표 수 조회 API
+    @GetMapping("/restaurant/{restaurantId}/count")
+    public ResponseEntity<Long> getParticipantCountByRestaurant(@PathVariable Long restaurantId) {
+        Long count = surveyService.getParticipantCountByRestaurant(restaurantId);
+        return ResponseEntity.ok(count);
     }
 }
 

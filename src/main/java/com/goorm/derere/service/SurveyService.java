@@ -66,4 +66,9 @@ public class SurveyService {
                         Collectors.counting()
                 ));
     }
+
+    // 음식점별 설문 참여자 수 조회
+    public Long getParticipantCountByRestaurant(Long restaurantId) {
+        return answerRepo.countDistinctUseridByRestaurantId(restaurantId);
+    }
 }
