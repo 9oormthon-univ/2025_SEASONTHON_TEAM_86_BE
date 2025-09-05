@@ -2,7 +2,9 @@ package com.goorm.derere.controller;
 
 import com.goorm.derere.entity.User;
 import com.goorm.derere.repository.OAuthRepository;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.web.bind.annotation.*;
@@ -40,5 +42,11 @@ public class UserController {
         oAuthRepository.delete(user);
 
         return "회원 탈퇴 완료";
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.noContent().build();
     }
 }
