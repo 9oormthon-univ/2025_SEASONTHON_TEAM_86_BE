@@ -22,4 +22,7 @@ public class AddRestaurantMenuRequest {
 
     @Size(max = 1000, message = "메뉴 설명은 1000자를 초과할 수 없습니다.")
     private String menuInfo;
+
+    @Size(max = 500, message = "이미지 URL은 500자를 초과할 수 없습니다.")
+    private String menuImageUrl;
 }

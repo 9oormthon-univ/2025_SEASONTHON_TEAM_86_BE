@@ -16,8 +16,9 @@ public class RestaurantResponse {
     private final String restaurantTime;
     private final Integer restaurantVote;
     private final Integer restaurantLike;
-    private final String ownerUsername; // 사장님 이름
-    private final Long ownerId; // 사장님 ID
+    private final String ownerUsername;
+    private final Long ownerId;
+    private final String restaurantImageUrl;
 
     public RestaurantResponse(Restaurant restaurant) {
         this.restaurantId = restaurant.getRestaurantId();
@@ -31,5 +32,6 @@ public class RestaurantResponse {
         this.restaurantLike = restaurant.getRestaurantLike();
         this.ownerUsername = restaurant.getUser().getUsername();
         this.ownerId = restaurant.getUser().getUserid();
+        this.restaurantImageUrl = restaurant.getRestaurantImageUrl();
     }
 }

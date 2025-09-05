@@ -10,6 +10,7 @@ import com.goorm.derere.repository.RestaurantRepository;
 import com.goorm.derere.repository.RestaurantTypeRepository;
 import com.goorm.derere.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,11 +19,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
     private final RestaurantTypeRepository restaurantTypeRepository;
     private final UserRepository userRepository;
+    private final S3Service s3Service;
 
     @Transactional
     public RestaurantResponse addRestaurant(AddRestaurantRequest addRestaurantRequest) {
@@ -44,24 +47,60 @@ public class RestaurantService {
                     return restaurantTypeRepository.save(newType);
                 });
 
-        var restaurant = new Restaurant(
-                addRestaurantRequest.getRestaurantName(),
-                user,
-                addRestaurantRequest.getRestaurantInfo(),
-                restaurantType,
-                addRestaurantRequest.getRestaurantNum(),
-                addRestaurantRequest.getRestaurantAddress(),
-                addRestaurantRequest.getRestaurantTime()
-        );
+        // 이미지 URL이 있는 경우와 없는 경우 처리
+        Restaurant restaurant;
+        if (addRestaurantRequest.getRestaurantImageUrl() != null &&
+                !addRestaurantRequest.getRestaurantImageUrl().trim().isEmpty()) {
+            restaurant = new Restaurant(
+                    addRestaurantRequest.getRestaurantName(),
+                    user,
+                    addRestaurantRequest.getRestaurantInfo(),
+                    restaurantType,
+                    addRestaurantRequest.getRestaurantNum(),
+                    addRestaurantRequest.getRestaurantAddress(),
+                    addRestaurantRequest.getRestaurantTime(),
+                    addRestaurantRequest.getRestaurantImageUrl()
+            );
+        } else {
+            restaurant = new Restaurant(
+                    addRestaurantRequest.getRestaurantName(),
+                    user,
+                    addRestaurantRequest.getRestaurantInfo(),
+                    restaurantType,
+                    addRestaurantRequest.getRestaurantNum(),
+                    addRestaurantRequest.getRestaurantAddress(),
+                    addRestaurantRequest.getRestaurantTime()
+            );
+        }
 
         Restaurant savedRestaurant = restaurantRepository.save(restaurant);
+        log.info("음식점 생성 완료 - ID: {}, 이름: {}, 이미지: {}",
+                savedRestaurant.getRestaurantId(),
+                savedRestaurant.getRestaurantName(),
+                savedRestaurant.getRestaurantImageUrl());
+
         return new RestaurantResponse(savedRestaurant);
     }
 
     @Transactional
     public void deleteRestaurant(Long restaurantId, Long userId) {
+        // 삭제 전 이미지 URL 조회
+        Restaurant restaurant = restaurantRepository.findByRestaurantIdAndUser_Userid(restaurantId, userId)
+                .orElse(null);
+
         long result = restaurantRepository.deleteByRestaurantIdAndUser_Userid(restaurantId, userId);
-        if (result == 0) throw new IllegalArgumentException("삭제 권한 혹은 해당 음식점이 없습니다.");
+        if (result == 0) {throw new IllegalArgumentException("삭제 권한 혹은 해당 음식점이 없습니다.");}
+
+        // 음식점 삭제 후 S3 이미지도 삭제
+        if (restaurant != null && restaurant.getRestaurantImageUrl() != null) {
+            try {
+                s3Service.deleteImage(restaurant.getRestaurantImageUrl());
+                log.info("음식점 삭제와 함께 이미지 삭제 완료 - 음식점ID: {}", restaurantId);
+            } catch (Exception e) {
+                log.warn("음식점 삭제는 완료되었으나 이미지 삭제 실패 - 음식점ID: {}, 사유: {}",
+                        restaurantId, e.getMessage());
+            }
+        }
     }
 
     @Transactional
@@ -70,13 +109,12 @@ public class RestaurantService {
         var restaurant = restaurantRepository.findByRestaurantIdAndUser_Userid(restaurantId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 음식점이 없습니다."));
 
+        // 기존 이미지 URL 백업 (이미지 교체 시 삭제용)
+        String oldImageUrl = restaurant.getRestaurantImageUrl();
+
         // null이 아닌 값만 반영 (부분 수정)
-        if (updateRestaurantRequest.getRestaurantName() != null) {
-            restaurant.changeName(updateRestaurantRequest.getRestaurantName());
-        }
-        if (updateRestaurantRequest.getRestaurantInfo() != null) {
-            restaurant.changeInfo(updateRestaurantRequest.getRestaurantInfo());
-        }
+        if (updateRestaurantRequest.getRestaurantName() != null) {restaurant.changeName(updateRestaurantRequest.getRestaurantName());}
+        if (updateRestaurantRequest.getRestaurantInfo() != null) {restaurant.changeInfo(updateRestaurantRequest.getRestaurantInfo());}
         if (updateRestaurantRequest.getRestaurantType() != null) {
             RestaurantType restaurantType = restaurantTypeRepository
                     .findByTypeName(updateRestaurantRequest.getRestaurantType())
@@ -86,15 +124,28 @@ public class RestaurantService {
                     });
             restaurant.changeType(restaurantType);
         }
-        if (updateRestaurantRequest.getRestaurantNum() != null) {
-            restaurant.changeNum(updateRestaurantRequest.getRestaurantNum());
+        if (updateRestaurantRequest.getRestaurantNum() != null) {restaurant.changeNum(updateRestaurantRequest.getRestaurantNum());}
+        if (updateRestaurantRequest.getRestaurantAddress() != null) {restaurant.changeAddress(updateRestaurantRequest.getRestaurantAddress());}
+        if (updateRestaurantRequest.getRestaurantTime() != null) {restaurant.changeTime(updateRestaurantRequest.getRestaurantTime());}
+
+        // 이미지 URL 업데이트 처리
+        if (updateRestaurantRequest.getRestaurantImageUrl() != null) {
+            restaurant.changeImageUrl(updateRestaurantRequest.getRestaurantImageUrl());
+
+            // 기존 이미지가 있고 새 이미지와 다르면 기존 이미지 삭제
+            if (oldImageUrl != null && !oldImageUrl.equals(updateRestaurantRequest.getRestaurantImageUrl())) {
+                try {
+                    s3Service.deleteImage(oldImageUrl);
+                    log.info("음식점 이미지 교체로 인한 기존 이미지 삭제 완료 - 음식점ID: {}", restaurantId);
+                } catch (Exception e) {
+                    log.warn("기존 이미지 삭제 실패 - 음식점ID: {}, 사유: {}", restaurantId, e.getMessage());
+                }
+            }
         }
-        if (updateRestaurantRequest.getRestaurantAddress() != null) {
-            restaurant.changeAddress(updateRestaurantRequest.getRestaurantAddress());
-        }
-        if (updateRestaurantRequest.getRestaurantTime() != null) {
-            restaurant.changeTime(updateRestaurantRequest.getRestaurantTime());
-        }
+
+        log.info("음식점 수정 완료 - ID: {}, 이미지 변경: {}",
+                restaurantId,
+                updateRestaurantRequest.getRestaurantImageUrl() != null);
     }
 
     // 전체 조회
