@@ -121,14 +121,80 @@
 - Backend: Spring Boot  
 - DB: MySQL  
 - Auth: OAuth2  
-- Docs: Swagger  
+- Docs: Swagger
 
 ---
 
-## 향후 계획
+## 주요 백엔드 로직
 
-투표 데이터를 넘어, AI를 사용해 지역별 미세한 수요를 예측하고 추천 기능을 도입합니다.  
-예: 시간대별 인기 메뉴 예측, 아파트 단지별 선호도 모델링
+### 1. 인증 및 보안
+
+- **JWT 토큰 발급 및 검증**  
+  `TokenProvider` 클래스에서 JWT 토큰을 생성하며, 사용자 인증 정보를 바탕으로 Access/Refresh 토큰을 발급합니다.  
+  - `generateAccessToken(Authentication authentication)` : 인증 정보를 기반으로 AccessToken 생성  
+  - `validateToken(token)` : 토큰 유효성 검사  
+  - `getAuthentication(token)` : 토큰에서 사용자 인증 객체 추출  
+  - 토큰에는 사용자 ID, 권한(role) 등이 포함됩니다.
+
+- **OAuth2 인증**  
+  Spring Security OAuth2를 통해 소셜 로그인 및 인증 정보를 획득합니다.
+
+---
+
+### 2. 음식점 관리
+
+- **음식점 엔티티**  
+  - 필드: 이름, 정보, 타입, 연락처, 위치, 운영시간, 이미지URL, 좋아요수 등
+  - 편의 메소드: 음식점 정보 수정, 메뉴 추가/삭제, 좋아요 증감 등
+  
+- **CRUD 서비스**  
+  - 전체 음식점 조회, 단일 음식점 상세 조회(메뉴 포함), 타입별/지역별/좋아요순/투표순 정렬 등 다양한 조회 API 제공
+  - 음식점 정보 수정/삭제는 로그인한 사용자만 가능
+
+- **좋아요/투표 기능**
+  - 좋아요 및 투표수에 따라 음식점을 정렬하거나 TOP3 추출
+  - 좋아요 수 및 투표수 증감 로직 내장
+
+---
+
+### 3. 메뉴 관리
+
+- **RestaurantMenu 엔티티**  
+  - 필드: 메뉴명, 가격, 설명, 이미지URL, 소속 음식점 등
+  - 편의 메소드: 메뉴 추가/삭제 등
+
+- **메뉴 CRUD 및 이미지 관리**
+  - 메뉴 등록/수정/삭제 API 제공
+  - 메뉴 이미지 S3 업로드 지원
+
+---
+
+### 4. 이미지 업로드/관리 (AWS S3)
+
+- **S3 Presigned URL 생성 및 이미지 관리**  
+  - 음식점 및 메뉴 이미지 업로드를 위해 Presigned URL 발급 (`S3Controller`)
+  - 이미지 삭제 기능도 지원
+  - 업로드 성공 시 이미지 URL 반환
+
+---
+
+### 5. 설문 및 투표 관리
+
+- **설문/투표 API**
+  - 음식점별 투표수 조회, 설문 응답 등록/수정/삭제, 설문 통계 조회 등
+  - 사용자별/음식점별 투표 관리 및 통계 제공
+
+---
+
+## 주요 API 예시
+
+- 음식점 전체 조회: `GET /api/restaurant`
+- 음식점 상세 조회(메뉴 포함): `GET /api/restaurant/{id}`
+- 음식점 좋아요순/투표순 정렬: `GET /api/restaurant/my-location/like/all`, `GET /api/restaurant/my-location/type/{type}`
+- 음식점 정보 수정: `PUT /api/restaurant/{id}`
+- 음식점 이미지 업로드: `POST /api/images/upload-url`
+- 음식점 메뉴 관리: `POST /api/restaurant/{id}/menu`, `DELETE /api/restaurant/{id}/menu/{menuId}`
+- 설문 투표 관리: `GET /api/surveys/restaurant/{restaurantId}/votes`
 
 ---
 
