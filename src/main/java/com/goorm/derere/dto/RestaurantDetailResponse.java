@@ -1,7 +1,6 @@
 package com.goorm.derere.dto;
 
 import com.goorm.derere.entity.Restaurant;
-import com.goorm.derere.entity.RestaurantType;
 import lombok.Getter;
 
 import java.util.List;
@@ -13,32 +12,34 @@ public class RestaurantDetailResponse {
     private final Long restaurantId;
     private final String restaurantName;
     private final String restaurantInfo;
-    private final RestaurantType.TypeName restaurantType;
+    private final String restaurantType;
     private final String restaurantNum;
-    private final String restaurantAddress;
+    private final String restaurantLocation;
     private final String restaurantStartTime;
     private final String restaurantEndTime;
     private final Integer restaurantVote;
     private final Integer restaurantLike;
-    private final String ownerUsername;
-    private final Long ownerId;
+    private final boolean restaurantOpen;
     private final String restaurantImageUrl;
+    private final String ownerName;
+    private final Long ownerId;
     private final List<RestaurantMenuResponse> menus;
 
     public RestaurantDetailResponse(Restaurant restaurant) {
         this.restaurantId = restaurant.getRestaurantId();
         this.restaurantName = restaurant.getRestaurantName();
         this.restaurantInfo = restaurant.getRestaurantInfo();
-        this.restaurantType = restaurant.getRestaurantType().getTypeName();
+        this.restaurantType = restaurant.getRestaurantType().getTypeName().getDisplayName();
         this.restaurantNum = restaurant.getRestaurantNum();
-        this.restaurantAddress = restaurant.getRestaurantAddress();
+        this.restaurantLocation = restaurant.getRestaurantLocation();
         this.restaurantStartTime = restaurant.getRestaurantStartTime();
         this.restaurantEndTime = restaurant.getRestaurantEndTime();
         this.restaurantVote = restaurant.getRestaurantVote();
         this.restaurantLike = restaurant.getRestaurantLike();
-        this.ownerUsername = restaurant.getUser().getUsername();
-        this.ownerId = restaurant.getUser().getUserid();
+        this.restaurantOpen = restaurant.isRestaurantOpen();
         this.restaurantImageUrl = restaurant.getRestaurantImageUrl();
+        this.ownerName = restaurant.getUser().getUsername();
+        this.ownerId = restaurant.getUser().getUserid();
         this.menus = restaurant.getMenus().stream()
                 .map(RestaurantMenuResponse::new)
                 .collect(Collectors.toList());

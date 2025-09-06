@@ -15,11 +15,11 @@ public class UpdateRestaurantRequest {
 
     private RestaurantType.TypeName restaurantType;
 
-    @Pattern(regexp = "^\\d{3}-\\d{3,4}-\\d{4}$")
+    @Pattern(regexp = "^\\d{2,3}-\\d{3,4}-\\d{4}$", message = "연락처는 (0)00-(0)000-0000 형식이어야 합니다.")
     private String restaurantNum;
 
     @Size(max = 100)
-    private String restaurantAddress;
+    private String restaurantLocation;
 
     @Size(max = 20)
     private String restaurantStartTime;
@@ -29,6 +29,4 @@ public class UpdateRestaurantRequest {
 
     @Size(max = 500, message = "이미지 URL은 500자를 초과할 수 없습니다.")
     private String restaurantImageUrl;
-
-    // 입력 값이 null 이면 기본 값으로 설정 -> 원하는 필드만 업데이트
 }

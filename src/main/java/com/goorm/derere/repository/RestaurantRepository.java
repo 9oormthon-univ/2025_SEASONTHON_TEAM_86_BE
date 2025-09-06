@@ -19,6 +19,41 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
     // 사용자별 음식점 조회 (OneToOne 관계이므로 하나만 존재)
     Optional<Restaurant> findByUser_Userid(Long userid);
 
+    // 지역별 음식점 조회 (기본 정렬)
+    List<Restaurant> findByRestaurantLocation(String location);
+
+    // 지역별 음식점 조회 - 좋아요 내림차순 정렬
+    List<Restaurant> findByRestaurantLocationOrderByRestaurantLikeDesc(String location);
+
+    // 지역별 음식점 조회 - 투표수 내림차순 정렬
+    List<Restaurant> findByRestaurantLocationOrderByRestaurantVoteDesc(String location);
+
+    // 지역별 음식점 조회 - 투표수 오름차순 정렬
+    List<Restaurant> findByRestaurantLocationOrderByRestaurantVoteAsc(String location);
+
+    // 지역별 좋아요 TOP 1 음식점
+    Optional<Restaurant> findTop1ByRestaurantLocationOrderByRestaurantLikeDesc(String location);
+
+    // 지역별 좋아요 TOP 3 음식점
+    List<Restaurant> findTop3ByRestaurantLocationOrderByRestaurantLikeDesc(String location);
+
+    // 지역별 투표수 TOP 3 음식점
+    List<Restaurant> findTop3ByRestaurantLocationOrderByRestaurantVoteDesc(String location);
+
+    // 지역별 이름 검색 - 투표수 정렬
+    @Query(value = "SELECT * FROM restaurant WHERE restaurant_location = :location AND MATCH(restaurant_name) AGAINST(:restaurantName) ORDER BY restaurant_vote DESC", nativeQuery = true)
+    List<Restaurant> findByRestaurantLocationAndNameOrderByVote(@Param("location") String location, @Param("restaurantName") String restaurantName);
+
+    // 지역별 이름 검색 - 좋아요수 정렬
+    @Query(value = "SELECT * FROM restaurant WHERE restaurant_location = :location AND MATCH(restaurant_name) AGAINST(:restaurantName) ORDER BY restaurant_like DESC", nativeQuery = true)
+    List<Restaurant> findByRestaurantLocationAndNameOrderByLike(@Param("location") String location, @Param("restaurantName") String restaurantName);
+
+    // 지역별 타입 검색 - 투표수 내림차순 정렬
+    List<Restaurant> findByRestaurantLocationAndRestaurantType_TypeNameOrderByRestaurantVoteDesc(String location, RestaurantType.TypeName typeName);
+
+    // 지역별 타입 검색 - 투표수 오름차순 정렬
+    List<Restaurant> findByRestaurantLocationAndRestaurantType_TypeNameOrderByRestaurantVoteAsc(String location, RestaurantType.TypeName typeName);
+
     // 좋아요 내림차순 정렬
     List<Restaurant> findAllByOrderByRestaurantLikeDesc();
 

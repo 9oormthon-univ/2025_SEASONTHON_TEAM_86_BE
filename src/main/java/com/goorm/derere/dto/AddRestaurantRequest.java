@@ -25,9 +25,9 @@ public class AddRestaurantRequest {
 
     @Pattern(regexp = "^\\d{2,3}-\\d{3,4}-\\d{4}$", message = "연락처는 (0)00-(0)000-0000 형식이어야 합니다.")
     private String restaurantNum;
-
+    
     @NotBlank @Size(max = 100)
-    private String restaurantAddress;
+    private String restaurantLocation;
 
     @NotBlank @Size(max = 20)
     private String restaurantStartTime;
