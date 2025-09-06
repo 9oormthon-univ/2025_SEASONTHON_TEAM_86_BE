@@ -22,7 +22,6 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
 
     private final OAuthService oAuthService; // userProfile 처리용
     private static final String REDIRECT_URI_EXISTING = "http://localhost:5173/";
-    private static final String REDIRECT_URI_NEW = "http://localhost:5173/signup";
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
@@ -31,10 +30,9 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
         DefaultOAuth2User principal = (DefaultOAuth2User) authentication.getPrincipal();
         OAuthUserInfo userProfile = (OAuthUserInfo) principal.getAttributes().get("oauth2User");
 
-        HttpSession session = request.getSession();
-        OAuthLoginResult result = oAuthService.updateOrSaveUser(userProfile, session);
+        OAuthLoginResult result = oAuthService.updateOrSaveUser(userProfile);
 
-        String targetUrl = result.isNew() ? REDIRECT_URI_NEW : REDIRECT_URI_EXISTING;
+        String targetUrl = REDIRECT_URI_EXISTING;
         response.sendRedirect(targetUrl);
     }
 

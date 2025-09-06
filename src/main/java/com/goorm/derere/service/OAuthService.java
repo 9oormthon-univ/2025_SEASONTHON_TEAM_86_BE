@@ -16,11 +16,8 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import jakarta.servlet.http.HttpSession;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
 import java.util.*;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -42,28 +39,16 @@ public class OAuthService implements OAuth2UserService<OAuth2UserRequest, OAuth2
         Map<String, Object> attributes = oAuth2User.getAttributes();
         OAuthUserInfo userProfile = OAuthAttributes.extract(registrationId, attributes);
 
-        HttpSession session = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
-                .getRequest().getSession();
+        // DB 저장 및 기존/신규 회원 판단
+        OAuthLoginResult loginResult = updateOrSaveUser(userProfile);
 
-        User user = oAuthRepository.findUserByEmail(userProfile.getEmail())
-                .map(existingUser -> existingUser.update(userProfile.getUsername(), userProfile.getEmail()))
-                .orElse(null);
-
-        if (user == null) {
-            // 신규 회원이면 세션에 임시 저장
-            session.setAttribute("oauth2User", userProfile);
-        }
-
-        // authorities는 항상 비어있는 리스트라도 반환
-        List<SimpleGrantedAuthority> authorities = user != null
-                ? List.of(new SimpleGrantedAuthority("ROLE_USER"))
-                : new ArrayList<>();
+        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
 
         Map<String, Object> customAttribute = getCustomAttribute(registrationId, userNameAttributeName, attributes, userProfile);
         customAttribute.put("oauth2User", userProfile);
+
         return new DefaultOAuth2User(authorities, customAttribute, userNameAttributeName);
     }
-
 
     public Map<String, Object> getCustomAttribute(String registrationId,
                                                   String userNameAttributeName,
@@ -79,17 +64,21 @@ public class OAuthService implements OAuth2UserService<OAuth2UserRequest, OAuth2
         return customAttribute;
     }
 
-    public OAuthLoginResult updateOrSaveUser(OAuthUserInfo userProfile, HttpSession session) {
-        Optional<User> optionalUser = oAuthRepository.findUserByEmail(userProfile.getEmail());
-
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get().update(userProfile.getUsername(), userProfile.getEmail());
-            return new OAuthLoginResult(user, false); // 기존 회원
-        } else {
-            // 신규 회원이면 세션에 정보 저장
-            session.setAttribute("oauth2User", userProfile);
-            return new OAuthLoginResult(null, true);
-        }
+    public OAuthLoginResult updateOrSaveUser(OAuthUserInfo userProfile) {
+        return oAuthRepository.findUserByEmail(userProfile.getEmail())
+                .map(existingUser -> {
+                    // 기존 회원 업데이트
+                    existingUser.update(userProfile.getUsername(), userProfile.getEmail());
+                    return new OAuthLoginResult(existingUser, false);
+                })
+                .orElseGet(() -> {
+                    // 신규 회원 바로 DB에 저장
+                    User newUser = User.builder()
+                            .username(userProfile.getUsername())
+                            .email(userProfile.getEmail())
+                            .build();
+                    User savedUser = oAuthRepository.save(newUser);
+                    return new OAuthLoginResult(savedUser, true);
+                });
     }
-
 }
