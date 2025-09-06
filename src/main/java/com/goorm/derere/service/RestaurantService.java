@@ -48,6 +48,9 @@ public class RestaurantService {
                     return restaurantTypeRepository.save(newType);
                 });
 
+        // 음식점 위치를 사용자 위치로 설정
+        String restaurantLocation = user.getLocation(); // 사용자의 location을 음식점 location으로 사용
+
         // 이미지 URL이 있는 경우와 없는 경우 처리
         Restaurant restaurant;
         if (addRestaurantRequest.getRestaurantImageUrl() != null &&
@@ -58,7 +61,7 @@ public class RestaurantService {
                     addRestaurantRequest.getRestaurantInfo(),
                     restaurantType,
                     addRestaurantRequest.getRestaurantNum(),
-                    addRestaurantRequest.getRestaurantAddress(),
+                    restaurantLocation, // 사용자의 location 사용
                     addRestaurantRequest.getRestaurantStartTime(),
                     addRestaurantRequest.getRestaurantEndTime(),
                     addRestaurantRequest.getRestaurantImageUrl()
@@ -70,16 +73,17 @@ public class RestaurantService {
                     addRestaurantRequest.getRestaurantInfo(),
                     restaurantType,
                     addRestaurantRequest.getRestaurantNum(),
-                    addRestaurantRequest.getRestaurantAddress(),
+                    restaurantLocation, // 사용자의 location 사용
                     addRestaurantRequest.getRestaurantStartTime(),
                     addRestaurantRequest.getRestaurantEndTime()
             );
         }
 
         Restaurant savedRestaurant = restaurantRepository.save(restaurant);
-        log.info("음식점 생성 완료 - ID: {}, 이름: {}, 이미지: {}",
+        log.info("음식점 생성 완료 - ID: {}, 이름: {}, 위치: {}, 이미지: {}",
                 savedRestaurant.getRestaurantId(),
                 savedRestaurant.getRestaurantName(),
+                savedRestaurant.getRestaurantLocation(),
                 savedRestaurant.getRestaurantImageUrl());
 
         return new RestaurantResponse(savedRestaurant);
@@ -128,7 +132,7 @@ public class RestaurantService {
             restaurant.changeType(restaurantType);
         }
         if (updateRestaurantRequest.getRestaurantNum() != null) {restaurant.changeNum(updateRestaurantRequest.getRestaurantNum());}
-        if (updateRestaurantRequest.getRestaurantAddress() != null) {restaurant.changeAddress(updateRestaurantRequest.getRestaurantAddress());}
+        if (updateRestaurantRequest.getRestaurantLocation() != null) {restaurant.changeLocation(updateRestaurantRequest.getRestaurantLocation());}
         if (updateRestaurantRequest.getRestaurantStartTime() != null) {restaurant.changeStartTime(updateRestaurantRequest.getRestaurantStartTime());}
         if (updateRestaurantRequest.getRestaurantEndTime() != null) {restaurant.changeEndTime(updateRestaurantRequest.getRestaurantEndTime());}
 
@@ -151,6 +155,8 @@ public class RestaurantService {
                 restaurantId,
                 updateRestaurantRequest.getRestaurantImageUrl() != null);
     }
+
+    // ===== 기존 메소드들 (변경 없음) =====
 
     // 전체 조회
     @Transactional(readOnly = true)
@@ -236,6 +242,86 @@ public class RestaurantService {
     @Transactional(readOnly = true)
     public List<RestaurantResponse> findByRestaurantTypeOrderByVoteAsc(RestaurantType.TypeName typeName) {
         return restaurantRepository.findByRestaurantType_TypeNameOrderByRestaurantVoteAsc(typeName).stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    // 지역별 음식점 조회 (기본)
+    @Transactional(readOnly = true)
+    public List<RestaurantResponse> getRestaurantsByLocation(String location) {
+        return restaurantRepository.findByRestaurantLocation(location).stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    // 지역별 음식점 조회 - 좋아요 내림차순 정렬
+    @Transactional(readOnly = true)
+    public List<RestaurantResponse> getRestaurantsByLocationOrderByLike(String location) {
+        return restaurantRepository.findByRestaurantLocationOrderByRestaurantLikeDesc(location).stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    // 지역별 음식점 조회 - 투표수 내림차순 정렬
+    @Transactional(readOnly = true)
+    public List<RestaurantResponse> getRestaurantsByLocationOrderByVote(String location) {
+        return restaurantRepository.findByRestaurantLocationOrderByRestaurantVoteDesc(location).stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    // 지역별 좋아요 TOP 1 음식점
+    @Transactional(readOnly = true)
+    public RestaurantResponse getTop1RestaurantByLocationAndLike(String location) {
+        Restaurant restaurant = restaurantRepository.findTop1ByRestaurantLocationOrderByRestaurantLikeDesc(location)
+                .orElseThrow(() -> new IllegalArgumentException("해당 지역의 좋아요 TOP 1 음식점이 없습니다."));
+        return new RestaurantResponse(restaurant);
+    }
+
+    // 지역별 좋아요 TOP 3 음식점
+    @Transactional(readOnly = true)
+    public List<RestaurantResponse> getTop3RestaurantsByLocationAndLike(String location) {
+        return restaurantRepository.findTop3ByRestaurantLocationOrderByRestaurantLikeDesc(location).stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    // 지역별 투표수 TOP 3 음식점
+    @Transactional(readOnly = true)
+    public List<RestaurantResponse> getTop3RestaurantsByLocationAndVote(String location) {
+        return restaurantRepository.findTop3ByRestaurantLocationOrderByRestaurantVoteDesc(location).stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    // 지역별 이름 검색 투표 수 정렬
+    @Transactional(readOnly = true)
+    public List<RestaurantResponse> findByLocationAndNameOrderByVote(String location, String restaurantName) {
+        return restaurantRepository.findByRestaurantLocationAndNameOrderByVote(location, restaurantName).stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    // 지역별 이름 검색 좋아요 수 정렬
+    @Transactional(readOnly = true)
+    public List<RestaurantResponse> findByLocationAndNameOrderByLike(String location, String restaurantName) {
+        return restaurantRepository.findByRestaurantLocationAndNameOrderByLike(location, restaurantName).stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    // 지역별 음식점 타입으로 검색 투표 많은 순 정렬
+    @Transactional(readOnly = true)
+    public List<RestaurantResponse> findByLocationAndTypeOrderByVoteDesc(String location, RestaurantType.TypeName typeName) {
+        return restaurantRepository.findByRestaurantLocationAndRestaurantType_TypeNameOrderByRestaurantVoteDesc(location, typeName).stream()
+                .map(RestaurantResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    // 지역별 음식점 타입으로 검색 투표 적은 순 정렬
+    @Transactional(readOnly = true)
+    public List<RestaurantResponse> findByLocationAndTypeOrderByVoteAsc(String location, RestaurantType.TypeName typeName) {
+        return restaurantRepository.findByRestaurantLocationAndRestaurantType_TypeNameOrderByRestaurantVoteAsc(location, typeName).stream()
                 .map(RestaurantResponse::new)
                 .collect(Collectors.toList());
     }

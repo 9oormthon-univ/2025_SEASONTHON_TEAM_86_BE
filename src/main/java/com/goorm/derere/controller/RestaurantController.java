@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
@@ -24,6 +25,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/restaurant")
 @RequiredArgsConstructor
+@Slf4j
 public class RestaurantController {
 
     private final RestaurantService restaurantService;
@@ -39,6 +41,8 @@ public class RestaurantController {
                 .created(URI.create("/api/restaurants/" + result.getRestaurantId()))
                 .body(result);
     }
+
+    // ===== 기존 전체 조회 API들 (변경 없음) =====
 
     // 전체 조회
     @Operation(summary = "음식점 조회 API", description = "음식점 READ 기능입니다. 전체 음식점 리스트를 확인할 수 있습니다.")
@@ -87,7 +91,7 @@ public class RestaurantController {
     }
 
     // 투표수 전체 정렬
-    @Operation(summary = "전체 투표수 정렬 API",
+    @Operation(summary = "투표수 정렬 API",
             description = "전체 음식점을 투표수 내림차순으로 정렬하여 조회합니다.")
     @GetMapping("/vote/all")
     public ResponseEntity<List<RestaurantResponse>> getAllRestaurantsOrderByVote() {
@@ -132,6 +136,255 @@ public class RestaurantController {
             restaurants = restaurantService.findByRestaurantTypeOrderByVoteAsc(restaurantType);
         } else {
             restaurants = restaurantService.findByRestaurantTypeOrderByVoteDesc(restaurantType);
+        }
+        return ResponseEntity.ok(restaurants);
+    }
+
+    // 로그인한 사용자 지역의 음식점 조회
+    @Operation(summary = "내 지역 음식점 조회 API", description = "로그인한 사용자의 지역에 있는 음식점 리스트를 조회합니다.")
+    @GetMapping("/my-location")
+    public ResponseEntity<List<RestaurantResponse>> getRestaurantsByMyLocation(
+            @AuthenticationPrincipal DefaultOAuth2User oauthUser) {
+
+        if (oauthUser == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+
+        String email = (String) oauthUser.getAttribute("email");
+        User user = oAuthRepository.findUserByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자 정보가 없습니다."));
+
+        var result = restaurantService.getRestaurantsByLocation(user.getLocation());
+        return ResponseEntity.ok(result);
+    }
+
+    // 로그인한 사용자 지역의 음식점 좋아요 정렬
+    @Operation(summary = "내 지역 좋아요수 정렬 API",
+            description = "로그인한 사용자의 지역 음식점을 좋아요수 내림차순으로 정렬하여 조회합니다.")
+    @GetMapping("/my-location/like/all")
+    public ResponseEntity<List<RestaurantResponse>> getMyLocationRestaurantsOrderByLike(
+            @AuthenticationPrincipal DefaultOAuth2User oauthUser) {
+
+        if (oauthUser == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+
+        String email = (String) oauthUser.getAttribute("email");
+        User user = oAuthRepository.findUserByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자 정보가 없습니다."));
+
+        var result = restaurantService.getRestaurantsByLocationOrderByLike(user.getLocation());
+        return ResponseEntity.ok(result);
+    }
+
+    // 로그인한 사용자 지역의 음식점 투표수 정렬
+    @Operation(summary = "내 지역 투표수 정렬 API",
+            description = "로그인한 사용자의 지역 음식점을 투표수 내림차순으로 정렬하여 조회합니다.")
+    @GetMapping("/my-location/vote/all")
+    public ResponseEntity<List<RestaurantResponse>> getMyLocationRestaurantsOrderByVote(
+            @AuthenticationPrincipal DefaultOAuth2User oauthUser) {
+
+        if (oauthUser == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+
+        String email = (String) oauthUser.getAttribute("email");
+        User user = oAuthRepository.findUserByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자 정보가 없습니다."));
+
+        var result = restaurantService.getRestaurantsByLocationOrderByVote(user.getLocation());
+        return ResponseEntity.ok(result);
+    }
+
+    // 로그인한 사용자 지역의 좋아요 TOP 1 음식점
+    @Operation(summary = "내 지역 좋아요 TOP 1 음식점 API", description = "로그인한 사용자의 지역에서 좋아요수가 가장 많은 음식점 1곳을 조회합니다.")
+    @GetMapping("/my-location/like/top1")
+    public ResponseEntity<RestaurantResponse> getMyLocationTop1RestaurantByLike(
+            @AuthenticationPrincipal DefaultOAuth2User oauthUser) {
+
+        if (oauthUser == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+
+        String email = (String) oauthUser.getAttribute("email");
+        User user = oAuthRepository.findUserByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자 정보가 없습니다."));
+
+        var restaurant = restaurantService.getTop1RestaurantByLocationAndLike(user.getLocation());
+        return ResponseEntity.ok(restaurant);
+    }
+
+    // 로그인한 사용자 지역의 좋아요 TOP 3 음식점
+    @Operation(summary = "내 지역 좋아요 TOP 3 음식점 API", description = "로그인한 사용자의 지역에서 좋아요수가 가장 많은 3곳의 음식점을 조회합니다.")
+    @GetMapping("/my-location/like/top3")
+    public ResponseEntity<List<RestaurantResponse>> getMyLocationTop3RestaurantsByLike(
+            @AuthenticationPrincipal DefaultOAuth2User oauthUser) {
+
+        if (oauthUser == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+
+        String email = (String) oauthUser.getAttribute("email");
+        User user = oAuthRepository.findUserByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자 정보가 없습니다."));
+
+        var restaurants = restaurantService.getTop3RestaurantsByLocationAndLike(user.getLocation());
+        return ResponseEntity.ok(restaurants);
+    }
+
+    // 로그인한 사용자 지역의 투표수 TOP 3 음식점
+    @Operation(summary = "내 지역 투표수 TOP 3 음식점 API", description = "로그인한 사용자의 지역에서 투표수가 가장 많은 3곳의 음식점을 조회합니다.")
+    @GetMapping("/my-location/vote/top3")
+    public ResponseEntity<List<RestaurantResponse>> getMyLocationTop3RestaurantsByVote(
+            @AuthenticationPrincipal DefaultOAuth2User oauthUser) {
+
+        if (oauthUser == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+
+        String email = (String) oauthUser.getAttribute("email");
+        User user = oAuthRepository.findUserByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자 정보가 없습니다."));
+
+        var restaurants = restaurantService.getTop3RestaurantsByLocationAndVote(user.getLocation());
+        return ResponseEntity.ok(restaurants);
+    }
+
+    // 로그인한 사용자 지역의 이름 검색
+    @Operation(summary = "내 지역 이름 검색 API", description = "로그인한 사용자의 지역에서 이름을 입력하여 음식점 리스트를 조회할 수 있습니다. vote/like로 정렬을 선택할 수 있습니다.")
+    @GetMapping("/my-location/search")
+    public ResponseEntity<List<RestaurantResponse>> getMyLocationRestaurantsByName(
+            @RequestParam String restaurantName,
+            @RequestParam(defaultValue = "vote") String sortBy,
+            @AuthenticationPrincipal DefaultOAuth2User oauthUser) {
+
+        if (oauthUser == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+
+        String email = (String) oauthUser.getAttribute("email");
+        User user = oAuthRepository.findUserByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자 정보가 없습니다."));
+
+        List<RestaurantResponse> restaurants;
+        if (sortBy.equals("like")) {
+            restaurants = restaurantService.findByLocationAndNameOrderByLike(user.getLocation(), restaurantName);
+        } else {
+            restaurants = restaurantService.findByLocationAndNameOrderByVote(user.getLocation(), restaurantName);
+        }
+        return ResponseEntity.ok(restaurants);
+    }
+
+    // 로그인한 사용자 지역의 타입별 조회
+    @Operation(summary = "내 지역 음식점 타입별 조회 API",
+            description = "로그인한 사용자의 지역에서 음식점 타입별 음식점 리스트를 조회할 수 있습니다. sortBy=desc(투표 많은 순, 기본값), sortBy=asc(투표 적은 순)")
+    @GetMapping("/my-location/type/{restaurantType}")
+    public ResponseEntity<List<RestaurantResponse>> getMyLocationRestaurantsByType(
+            @PathVariable RestaurantType.TypeName restaurantType,
+            @RequestParam(defaultValue = "desc") String sortBy,
+            @AuthenticationPrincipal DefaultOAuth2User oauthUser) {
+
+        if (oauthUser == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+
+        String email = (String) oauthUser.getAttribute("email");
+        User user = oAuthRepository.findUserByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("사용자 정보가 없습니다."));
+
+        List<RestaurantResponse> restaurants;
+        if (sortBy.equals("asc")) {
+            restaurants = restaurantService.findByLocationAndTypeOrderByVoteAsc(user.getLocation(), restaurantType);
+        } else {
+            restaurants = restaurantService.findByLocationAndTypeOrderByVoteDesc(user.getLocation(), restaurantType);
+        }
+        return ResponseEntity.ok(restaurants);
+    }
+
+    // 개발용 지역별 음식점 조회
+    @Operation(summary = "지역별 음식점 조회 API (개발용)", description = "개발용 임시 API입니다. OAuth2 인증 없이 테스트할 수 있습니다.")
+    @GetMapping("/location/{location}")
+    public ResponseEntity<List<RestaurantResponse>> getRestaurantsByLocationTemp(@PathVariable String location) {
+
+        var result = restaurantService.getRestaurantsByLocation(location);
+        return ResponseEntity.ok(result);
+    }
+
+    // 개발용 지역별 좋아요 정렬
+    @Operation(summary = "지역별 좋아요수 정렬 API (개발용)", description = "개발용 임시 API입니다. OAuth2 인증 없이 테스트할 수 있습니다.")
+    @GetMapping("/location/{location}/like/all")
+    public ResponseEntity<List<RestaurantResponse>> getRestaurantsByLocationOrderByLikeTemp(@PathVariable String location) {
+
+        var result = restaurantService.getRestaurantsByLocationOrderByLike(location);
+        return ResponseEntity.ok(result);
+    }
+
+    // 개발용 지역별 투표수 정렬
+    @Operation(summary = "지역별 투표수 정렬 API (개발용)", description = "개발용 임시 API입니다. OAuth2 인증 없이 테스트할 수 있습니다.")
+    @GetMapping("/location/{location}/vote/all")
+    public ResponseEntity<List<RestaurantResponse>> getRestaurantsByLocationOrderByVoteTemp(@PathVariable String location) {
+
+        var result = restaurantService.getRestaurantsByLocationOrderByVote(location);
+        return ResponseEntity.ok(result);
+    }
+
+    // 개발용 지역별 좋아요 TOP 1
+    @Operation(summary = "지역별 좋아요 TOP 1 음식점 API (개발용)", description = "개발용 임시 API입니다. OAuth2 인증 없이 테스트할 수 있습니다.")
+    @GetMapping("/location/{location}/like/top1")
+    public ResponseEntity<RestaurantResponse> getTop1RestaurantByLocationAndLikeTemp(@PathVariable String location) {
+
+        var restaurant = restaurantService.getTop1RestaurantByLocationAndLike(location);
+        return ResponseEntity.ok(restaurant);
+    }
+
+    // 개발용 지역별 좋아요 TOP 3
+    @Operation(summary = "지역별 좋아요 TOP 3 음식점 API (개발용)", description = "개발용 임시 API입니다. OAuth2 인증 없이 테스트할 수 있습니다.")
+    @GetMapping("/location/{location}/like/top3")
+    public ResponseEntity<List<RestaurantResponse>> getTop3RestaurantsByLocationAndLikeTemp(@PathVariable String location) {
+
+        var restaurants = restaurantService.getTop3RestaurantsByLocationAndLike(location);
+        return ResponseEntity.ok(restaurants);
+    }
+
+    // 개발용 지역별 투표수 TOP 3
+    @Operation(summary = "지역별 투표수 TOP 3 음식점 API (개발용)", description = "개발용 임시 API입니다. OAuth2 인증 없이 테스트할 수 있습니다.")
+    @GetMapping("/location/{location}/vote/top3")
+    public ResponseEntity<List<RestaurantResponse>> getTop3RestaurantsByLocationAndVoteTemp(@PathVariable String location) {
+
+        var restaurants = restaurantService.getTop3RestaurantsByLocationAndVote(location);
+        return ResponseEntity.ok(restaurants);
+    }
+
+    // 개발용 지역별 이름 검색
+    @Operation(summary = "지역별 이름 검색 API (개발용)", description = "개발용 임시 API입니다. OAuth2 인증 없이 테스트할 수 있습니다.")
+    @GetMapping("/location/{location}/search")
+    public ResponseEntity<List<RestaurantResponse>> getRestaurantsByLocationAndNameTemp(
+            @PathVariable String location,
+            @RequestParam String restaurantName,
+            @RequestParam(defaultValue = "vote") String sortBy) {
+
+        List<RestaurantResponse> restaurants;
+        if (sortBy.equals("like")) {
+            restaurants = restaurantService.findByLocationAndNameOrderByLike(location, restaurantName);
+        } else {
+            restaurants = restaurantService.findByLocationAndNameOrderByVote(location, restaurantName);
+        }
+        return ResponseEntity.ok(restaurants);
+    }
+
+    // 개발용 지역별 타입별 조회
+    @Operation(summary = "지역별 음식점 타입별 조회 API (개발용)", description = "개발용 임시 API입니다. OAuth2 인증 없이 테스트할 수 있습니다.")
+    @GetMapping("/location/{location}/type/{restaurantType}")
+    public ResponseEntity<List<RestaurantResponse>> getRestaurantsByLocationAndTypeTemp(
+            @PathVariable String location,
+            @PathVariable RestaurantType.TypeName restaurantType,
+            @RequestParam(defaultValue = "desc") String sortBy) {
+
+        List<RestaurantResponse> restaurants;
+        if (sortBy.equals("asc")) {
+            restaurants = restaurantService.findByLocationAndTypeOrderByVoteAsc(location, restaurantType);
+        } else {
+            restaurants = restaurantService.findByLocationAndTypeOrderByVoteDesc(location, restaurantType);
         }
         return ResponseEntity.ok(restaurants);
     }
