@@ -39,7 +39,9 @@ public class OAuthService implements OAuth2UserService<OAuth2UserRequest, OAuth2
                 .getUserInfoEndpoint()
                 .getUserNameAttributeName();
 
-        Map<String, Object> attributes = oAuth2User.getAttributes();
+        // 1️⃣ 읽기 전용 Map을 수정 가능한 HashMap으로 변환
+        Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
+
         OAuthUserInfo userProfile = OAuthAttributes.extract(registrationId, attributes);
 
         HttpSession session = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
@@ -54,7 +56,7 @@ public class OAuthService implements OAuth2UserService<OAuth2UserRequest, OAuth2
             // 신규 회원이면 임시 토큰 생성 후 세션에 저장
             String tempToken = UUID.randomUUID().toString();
             session.setAttribute(tempToken, userProfile);
-            attributes.put("signupToken", tempToken); // 프론트로 전달 가능
+            attributes.put("signupToken", tempToken); // 이제 오류 없음
             log.debug("세션에 oauth2User 저장 완료 - username: {}, email: {}, token: {}",
                     userProfile.getUsername(), userProfile.getEmail(), tempToken);
         }
@@ -68,6 +70,7 @@ public class OAuthService implements OAuth2UserService<OAuth2UserRequest, OAuth2
 
         return new DefaultOAuth2User(authorities, customAttribute, userNameAttributeName);
     }
+
 
     public Map<String, Object> getCustomAttribute(String registrationId,
                                                   String userNameAttributeName,
