@@ -16,7 +16,7 @@ import java.io.IOException;
 public class OAuth2SuccessHandler  implements AuthenticationSuccessHandler{
 
     private final TokenProvider tokenProvider;
-    private static final String REDIRECT_URI = "http://localhost:5173/";
+    private static final String REDIRECT_URI = "http://localhost:5173/oauth/redirect";
 
     @Override
         public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
