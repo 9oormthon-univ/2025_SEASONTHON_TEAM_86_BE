@@ -63,7 +63,7 @@ public class TokenProvider {
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
-        String name = oAuth2User.getAttribute("username");
+        String name = oAuth2User.getAttribute("name");
 
 
         return Jwts.builder()
