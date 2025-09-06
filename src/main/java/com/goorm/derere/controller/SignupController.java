@@ -45,6 +45,7 @@ public class SignupController {
 ////        SecurityContextHolder.getContext().setAuthentication(auth);
 //        return  newUser;
 //    }
+
     @PostMapping("/signup")
     public void signup(@AuthenticationPrincipal OAuthUserInfo oauthUser,
                        @RequestBody Map<String, String> body,
@@ -62,5 +63,4 @@ public class SignupController {
         String targetUrl = loginRedirectService.handleLogin(newUser, request);
         response.sendRedirect(targetUrl);
     }
-
 }

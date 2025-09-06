@@ -7,7 +7,10 @@ import com.goorm.derere.entity.User;
 import com.goorm.derere.repository.OAuthRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -50,9 +53,14 @@ public class OAuthService implements OAuth2UserService<OAuth2UserRequest, OAuth2
                 .orElse(null);
 
         if (user == null) {
-            // 신규 회원이면 세션에 임시 저장
-            session.setAttribute("oauth2User", userProfile);
+            // 신규 회원이면 SecurityContext에 userProfile을 담아줌
+            Authentication auth = new UsernamePasswordAuthenticationToken(
+                    userProfile,
+                    null
+            );
+            SecurityContextHolder.getContext().setAuthentication(auth);
         }
+
 
         // authorities는 항상 비어있는 리스트라도 반환
         List<SimpleGrantedAuthority> authorities = user != null
