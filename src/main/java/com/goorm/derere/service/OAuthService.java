@@ -39,16 +39,16 @@ public class OAuthService implements OAuth2UserService<OAuth2UserRequest, OAuth2
         Map<String, Object> attributes = oAuth2User.getAttributes();
         OAuthUserInfo userProfile = OAuthAttributes.extract(registrationId, attributes);
 
-        // DB 저장 및 기존/신규 회원 판단
-        OAuthLoginResult loginResult = updateOrSaveUser(userProfile);
-
-        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        // 🔹 로그인 성공 처리 (DB 저장 없이)
+        String role = getUserTypeIfExists(userProfile);
+        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
 
         Map<String, Object> customAttribute = getCustomAttribute(registrationId, userNameAttributeName, attributes, userProfile);
         customAttribute.put("oauth2User", userProfile);
 
         return new DefaultOAuth2User(authorities, customAttribute, userNameAttributeName);
     }
+
 
     public Map<String, Object> getCustomAttribute(String registrationId,
                                                   String userNameAttributeName,
@@ -60,25 +60,23 @@ public class OAuthService implements OAuth2UserService<OAuth2UserRequest, OAuth2
         customAttribute.put("name", userProfile.getUsername());
         customAttribute.put("email", userProfile.getEmail());
 
+
         log.info("Custom Attribute 생성 완료: {}", customAttribute);
         return customAttribute;
     }
 
-    public OAuthLoginResult updateOrSaveUser(OAuthUserInfo userProfile) {
+    public String getUserTypeIfExists(OAuthUserInfo userProfile) {
+        // 이메일로 사용자 조회
         return oAuthRepository.findUserByEmail(userProfile.getEmail())
                 .map(existingUser -> {
-                    // 기존 회원 업데이트
-                    existingUser.update(userProfile.getUsername(), userProfile.getEmail());
-                    return new OAuthLoginResult(existingUser, false);
+                    log.info("기존 회원 로그인 성공: {}", existingUser.getEmail());
+                    return existingUser.getUsertype();  // 기존 회원이면 usertype 반환
                 })
                 .orElseGet(() -> {
-                    // 신규 회원 바로 DB에 저장
-                    User newUser = User.builder()
-                            .username(userProfile.getUsername())
-                            .email(userProfile.getEmail())
-                            .build();
-                    User savedUser = oAuthRepository.save(newUser);
-                    return new OAuthLoginResult(savedUser, true);
+                    log.info("신규 회원 로그인: {}", userProfile.getEmail());
+                    return "신규";  // 신규 회원이면 null 반환
                 });
     }
+
+
 }

@@ -65,13 +65,14 @@ public class TokenProvider {
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
 
-
         return Jwts.builder()
-                .setSubject(email)       // 사용자 식별자 (userId)
-                .claim("name", name)          // 사용자 권한 정보 저장
-                .setIssuedAt(now)                           // 발급시간
-                .setExpiration(expiry)                      // 만료시간
-                .signWith(key, SignatureAlgorithm.HS256)    // 서명
+                .setSubject(email)
+                .claim("name", name)
+                .claim(KEY_ROLE, authorities)  // 🔥 이 줄을 추가하세요!
+                .claim("tokenType", "access")  // 토큰 타입도 추가
+                .setIssuedAt(now)
+                .setExpiration(expiry)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -88,7 +89,7 @@ public class TokenProvider {
 
         // 👇 추가: role null 방지
         Object roleObj = claims.get(KEY_ROLE);
-        String rawRole = roleObj != null ? roleObj.toString() : "ROLE_USER";
+        String rawRole = roleObj.toString();
 
         List<SimpleGrantedAuthority> authorities = Arrays.stream(rawRole.split(","))
                 .map(SimpleGrantedAuthority::new)
