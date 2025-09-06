@@ -25,17 +25,16 @@ public class SignupController {
 
     @PostMapping("/signup")
     public void signup(@RequestBody Map<String, String> body,
+                       @RequestParam("signupToken") String token,
                        HttpServletRequest request,
                        HttpServletResponse response) throws IOException {
 
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("oauth2User") == null) {
+        if (session == null || session.getAttribute(token) == null) {
             throw new IllegalStateException("세션에 OAuth 정보가 없습니다.");
         }
 
-        // 세션에서 임시 저장해둔 OAuth 정보 꺼내오기
-        OAuthUserInfo oauthUser = (OAuthUserInfo) session.getAttribute("oauth2User");
-
+        OAuthUserInfo oauthUser = (OAuthUserInfo) session.getAttribute(token);
 
         User newUser = User.builder()
                 .username(oauthUser.getUsername())
@@ -45,10 +44,12 @@ public class SignupController {
                 .build();
         newUser = oAuthRepository.save(newUser);
 
+        // 세션에 새 유저 저장 후 임시 토큰 제거
         session.setAttribute("user", newUser);
+        session.removeAttribute(token);
 
-        // 로그인 리다이렉트 처리
         String targetUrl = loginRedirectService.handleLogin(newUser, request);
         response.sendRedirect(targetUrl);
     }
 }
+
