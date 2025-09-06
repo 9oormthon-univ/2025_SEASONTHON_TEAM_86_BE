@@ -63,12 +63,8 @@ public class TokenProvider {
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
-        String name = oAuth2User.getAttribute("nickname");
+        String name = oAuth2User.getAttribute("username");
 
-        String role = oAuth2User.getAttribute("role");
-        if (role == null) {
-            role = "HOST"; // 기본값 지정
-        }
 
         return Jwts.builder()
                 .setSubject(email)       // 사용자 식별자 (userId)
