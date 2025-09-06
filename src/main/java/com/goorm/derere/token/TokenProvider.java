@@ -63,7 +63,7 @@ public class TokenProvider {
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
-        String userid = email.split("@")[0];
+        String name = oAuth2User.getAttribute("nickname");
 
         String role = oAuth2User.getAttribute("role");
         if (role == null) {
@@ -71,8 +71,8 @@ public class TokenProvider {
         }
 
         return Jwts.builder()
-                .setSubject(userid)       // 사용자 식별자 (userId)
-                .claim(KEY_ROLE, role)           // 사용자 권한 정보 저장
+                .setSubject(email)       // 사용자 식별자 (userId)
+                .claim("name", name)          // 사용자 권한 정보 저장
                 .setIssuedAt(now)                           // 발급시간
                 .setExpiration(expiry)                      // 만료시간
                 .signWith(key, SignatureAlgorithm.HS256)    // 서명
