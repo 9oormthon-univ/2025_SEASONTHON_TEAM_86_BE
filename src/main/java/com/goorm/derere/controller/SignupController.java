@@ -36,6 +36,7 @@ public class SignupController {
         // 세션에서 임시 저장해둔 OAuth 정보 꺼내오기
         OAuthUserInfo oauthUser = (OAuthUserInfo) session.getAttribute("oauth2User");
 
+
         User newUser = User.builder()
                 .username(oauthUser.getUsername())
                 .email(oauthUser.getEmail())

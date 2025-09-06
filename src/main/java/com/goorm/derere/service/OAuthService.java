@@ -52,6 +52,7 @@ public class OAuthService implements OAuth2UserService<OAuth2UserRequest, OAuth2
         if (user == null) {
             // 신규 회원이면 세션에 임시 저장
             session.setAttribute("oauth2User", userProfile);
+            log.debug(" 세션에 oauth2User 저장 완료: {}", userProfile);
         }
 
         // authorities는 항상 비어있는 리스트라도 반환
@@ -88,6 +89,7 @@ public class OAuthService implements OAuth2UserService<OAuth2UserRequest, OAuth2
         } else {
             // 신규 회원이면 세션에 정보 저장
             session.setAttribute("oauth2User", userProfile);
+            log.debug("세션에 oauth2User 저장 완료: {}", userProfile);
             return new OAuthLoginResult(null, true);
         }
     }
