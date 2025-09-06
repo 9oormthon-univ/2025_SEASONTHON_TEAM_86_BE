@@ -21,8 +21,8 @@ import java.io.IOException;
 public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
 
     private final OAuthService oAuthService; // userProfile 처리용
-    private static final String REDIRECT_URI_EXISTING = "http://3.37.87.84:8080";
-    private static final String REDIRECT_URI_NEW = "http://3.37.87.84:8080/signup";
+    private static final String REDIRECT_URI_EXISTING = "http://localhost:5173/";
+    private static final String REDIRECT_URI_NEW = "http://localhost:5173/signup";
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
