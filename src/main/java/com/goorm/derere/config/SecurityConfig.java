@@ -1,7 +1,7 @@
 package com.goorm.derere.config;
 
-import com.goorm.derere.handler.OAuthSuccessHandler;
 import com.goorm.derere.service.OAuthService;
+import com.goorm.derere.token.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
     private final OAuthService oAuthService;
-    private final OAuthSuccessHandler oAuthSuccessHandler;
+    private final OAuth2SuccessHandler oAuthSuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {

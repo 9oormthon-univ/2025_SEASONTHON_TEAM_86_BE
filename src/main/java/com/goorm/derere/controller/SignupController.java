@@ -14,6 +14,10 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
+@CrossOrigin(
+        origins = "http://localhost:5173", // 정확히 프론트 주소 명시
+        allowCredentials = "true"
+)
 public class SignupController {
 
     private final OAuthRepository oAuthRepository;
